@@ -1,9 +1,7 @@
 from django.contrib import admin
-from .models import Reading, ReadingAnswer,ReadingUserAnswer,ReadingMaterial
-try:
-    from .models import Users
-except ImportError:
-    Users = None 
+from django import forms
+from django.db import models
+from .models import Reading, ReadingAnswer, ReadingUserAnswer, ReadingMaterial 
     
     
     
@@ -41,12 +39,15 @@ class ReadingMaterialAdmin(admin.ModelAdmin):
     get_test_title.short_description = "Test Title"
 
 
-class ReadingAnswerInline(admin.TabularInline):
+class ReadingAnswerInline(admin.StackedInline):
     model = ReadingAnswer
-    extra = 0
-    fields = ("question_number", "true_answer")
+    extra = 5
+    fields = ("question_number", "question", "true_answer")
     can_delete = True
     show_change_link = True
+    formfield_overrides = {
+        models.TextField: {"widget": forms.Textarea(attrs={"rows": 7, "cols": 80})},
+    }
 
 
 @admin.register(Reading)
@@ -65,7 +66,6 @@ class ReadingAdmin(admin.ModelAdmin):
                 "title",
                 "passage_number",
                 "content",
-                "questions",
                 "description",
                 "created_at",
             )
@@ -131,6 +131,7 @@ class ReadingAnswerAdmin(admin.ModelAdmin):
     list_display = (
         'reading',
         'question_number',
+        'question',
         'true_answer',
         'created_at',
     )

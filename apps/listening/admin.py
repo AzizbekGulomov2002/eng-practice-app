@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django import forms
+from django.db import models
 from .models import ListeningMaterial, Listening, ListeningAnswer, ListeningUserAnswer
 
 
@@ -28,21 +29,24 @@ class ListeningMaterialAdmin(admin.ModelAdmin):
     get_listenings_count.short_description = "Listenings"
 
 
-class ListeningAnswerInline(admin.TabularInline):
+class ListeningAnswerInline(admin.StackedInline):
     model = ListeningAnswer
-    extra = 0
-    fields = ('question_number', 'true_answer')
+    extra = 5
+    fields = ("question_number", "question", "true_answer")
     can_delete = True
     show_change_link = True
+    formfield_overrides = {
+        models.TextField: {"widget": forms.Textarea(attrs={"rows": 7, "cols": 80})},
+    }
 
 
 class ListeningAdminForm(forms.ModelForm):
     """Custom form for Listening admin with audio upload in list view"""
     class Meta:
         model = Listening
-        fields = '__all__'
+        exclude = ("questions", "questions_raw")
         widgets = {
-            'audio': forms.FileInput(attrs={'style': 'width: 200px;'}),
+            "audio": forms.FileInput(attrs={"style": "width: 200px;"}),
         }
 
 
@@ -86,7 +90,6 @@ class ListeningAdmin(admin.ModelAdmin):
                 'audio',
                 'listening_section',
                 'audioscript',
-                'questions',
                 'description',
                 'is_script'
             )
@@ -109,6 +112,7 @@ class ListeningAnswerAdmin(admin.ModelAdmin):
     list_display = (
         'listening',
         'question_number',
+        'question',
         'true_answer',
         'created_at',
     )

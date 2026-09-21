@@ -1,0 +1,375 @@
+================================================================================
+PRODUCTION: ADMIN PANELDA TEST QO‘SHISH
+Copy-paste ready. Kirish: https://SIZNING-DOMEN/admin/
+================================================================================
+
+Student register yo‘q. User faqat Admin → Users orqali yaratiladi.
+Login = telefon raqam, parol = admin belgilagan parol.
+
+
+################################################################################
+0. HAR BIR SKILL UCHUN AVVAL SHU 2 TA OBYEKT
+################################################################################
+
+A) App → Tests → Add
+   Title:        Practice Test 1
+   Test type:    Thematic
+   SAVE
+
+B) App → Test Materials → Add   (HAR SKILL UCHUN ALOHIDA)
+
+   --- Reading uchun ---
+   Test:     Practice Test 1
+   Title:    Reading Practice
+   Is view:  ✅ (submitdan keyin kalit ko‘rinsin)
+   SAVE
+
+   --- Writing uchun ---
+   Test:     Practice Test 1
+   Title:    Writing Practice
+   Is view:  ☐
+   SAVE
+
+   --- Listening uchun ---
+   Test:     Practice Test 1
+   Title:    Listening Practice
+   Is view:  ✅
+   SAVE
+
+   --- Speaking uchun ---
+   Test:     Practice Test 1
+   Title:    Speaking Practice
+   Is view:  ☐
+   SAVE
+
+Answer time maydonlari SEKUNDA:
+  1800 = 30 daqiqa
+  2400 = 40 daqiqa
+  3600 = 60 daqiqa
+
+
+################################################################################
+1. READING
+Student: chapda matn, o‘ngda savollar. Submit = avtomatik ball.
+################################################################################
+
+STEP 1.  Reading → Reading materials → Add
+         Test material:  Reading Practice
+         Title:          Reading: Ecological intelligence
+         Answer time:    2400
+         SAVE
+
+STEP 2.  Reading → Readings → Add
+         Reading material:  Reading: Ecological intelligence
+         Title:             Cities and ecological intelligence
+         Passage number:    Passage 1
+
+         ----- COPY: Reading Content (CKEditor) -----
+
+Cities around the world are looking for practical ways to become healthier and more sustainable. One idea that appears again and again is ecological intelligence: the ability to understand how everyday actions affect the environment and to choose options that support long-term wellbeing.
+
+Research shows that people learn this kind of thinking more easily when lessons are connected to real life. Students who study language or science through topics such as clean air, local food, and green transport often remember information better than those who only memorise abstract facts. Walking or cycling instead of driving, for example, improves personal fitness and also reduces air pollution.
+
+Locally grown food is another simple example. It is usually fresher and more nutritious, and it can reduce carbon emissions because it does not travel long distances. Universities can use these everyday examples in English classes so that students practise grammar and vocabulary while also learning how communities can live more sustainably.
+
+Nature-based activities, such as guided walks in a park or community gardening, also help. Time spent outdoors can improve concentration and make learning feel more meaningful. In this way, ecological intelligence is not only knowledge about the planet; it is a habit of making better daily choices.
+
+         ----- END Reading Content -----
+
+STEP 3.  Xuddi shu Reading sahifasining PASTIDA "Reading Questions"
+         Har savol uchun 3 ta maydon: Question number, Question, Correct Answer.
+         HTML KERAK EMAS. Variantlarni yangi qatordan A) B) C) D) qilib yozing.
+
+         ----- COPY: Reading Question 1 -----
+         Question number:  1
+         Question:
+What is ecological intelligence?
+A) Memorising the names of plants
+B) Understanding how everyday actions affect the environment
+C) Avoiding all technology
+D) Studying only in laboratories
+         Correct Answer:   B
+
+         ----- COPY: Reading Question 2 -----
+         Question number:  2
+         Question:
+When do students remember information better?
+A) When lessons are connected to real life
+B) When they only memorise abstract facts
+C) When they never leave the classroom
+D) When they avoid environmental topics
+         Correct Answer:   A
+
+         ----- COPY: Reading Question 3 -----
+         Question number:  3
+         Question:
+Walking or cycling instead of driving is said to:
+A) Increase air pollution
+B) Reduce personal fitness
+C) Improve fitness and reduce air pollution
+D) Have no effect on health
+         Correct Answer:   C
+
+         ----- COPY: Reading Question 4 -----
+         Question number:  4
+         Question:
+Why is locally grown food described as useful?
+A) It always costs more
+B) It is usually fresher and can reduce carbon emissions
+C) It must travel long distances
+D) It cannot be used in English classes
+         Correct Answer:   B
+
+         ----- COPY: Reading Question 5 -----
+         Question number:  5
+         Question:
+What can nature-based activities such as guided walks do?
+A) Make learning less meaningful
+B) Reduce concentration
+C) Replace all university courses
+D) Improve concentration and make learning more meaningful
+         Correct Answer:   D
+
+         Qoidalar:
+         - MCQ javob: faqat harf  A / B / C / D
+         - Open savol: Question ga faqat savol matni, javob:  green transport;air pollution
+         - Fikr savoli: javob  OPINION  (ballga kirmaydi)
+
+STEP 4.  SAVE
+         Student: Tests → Reading → Start
+
+
+################################################################################
+2. WRITING
+Student: Part 1 keyin Part 2, 1 soat timer. Submit = teacher baholaydi.
+################################################################################
+
+STEP 1.  Writing → Writing materials → Add
+         Test material:  Writing Practice
+         Title:          Writing: Academic tasks
+         Answer time:    3600
+         SAVE
+
+STEP 2.  Writing → Writings → Add     (TASK 1)
+         Writing material:  Writing: Academic tasks
+         Writing task:      Part 1
+         Description:       Write at least 150 words.
+
+         Pastida Writing Questions:
+         Question number: 1
+         Question (CKEditor) — COPY:
+
+The chart below shows how people in a city travelled to work in 2010 and 2020.
+
+Summarise the information by selecting and reporting the main features, and make comparisons where relevant. You should write at least 150 words.
+
+2010: car 60%, bus 25%, bicycle 10%, walking 5%
+2020: car 40%, bus 30%, bicycle 20%, walking 10%
+
+         SAVE
+
+STEP 3.  Writing → Writings → Add     (TASK 2)
+         Writing material:  Writing: Academic tasks
+         Writing task:      Part 2
+         Description:       Write at least 250 words.
+
+         Pastida Writing Questions:
+         Question number: 1
+         Question (CKEditor) — COPY:
+
+Some people think that universities should teach students about environmental problems. Others believe that universities should focus only on academic subjects.
+
+Discuss both views and give your own opinion. You should write at least 250 words.
+
+         SAVE
+
+STEP 4.  Student: Tests → Writing → Start
+         Baholash: /teacher/   yoki   Writing → Writing Answers
+
+
+################################################################################
+3. LISTENING
+Student: chapda audio (+ transcript agar yoqilgan bo‘lsa), o‘ngda savollar.
+Submit = avtomatik ball.
+################################################################################
+
+STEP 1.  Listening → Listening materials → Add
+         Test material:  Listening Practice
+         Title:          Listening: Ecological intelligence
+         Answer time:    1800
+         SAVE
+
+STEP 2.  Listening → Listenings → Add
+         Listening material:  Listening: Ecological intelligence
+         Title:               Part 1
+         Listening section:   Part 1
+         Audio:               mp3 / wav / m4a fayl yuklang
+         Show transcript:     ✅  (chapda script chiqadi)
+                              ☐  (faqat audio)
+
+         Audioscript — COPY:
+
+Good morning. Today we will talk about ecological intelligence. Ecological intelligence is the ability to understand how our actions affect the environment. Research shows that students learn better when lessons are connected to real, meaningful contexts. Walking or cycling instead of driving improves health and reduces air pollution. Locally grown food is fresher and also reduces carbon emissions. Nature-based activities such as guided nature walks help students remember information more easily.
+
+STEP 3.  Pastida "Listening Questions"
+         HTML KERAK EMAS. Har savol: number + question + correct answer.
+
+         ----- COPY: Listening Question 1 -----
+         Question number:  1
+         Question:
+What is ecological intelligence?
+A) The ability to name every animal
+B) The ability to understand how our actions affect the environment
+C) The ability to drive faster
+D) The ability to avoid all food
+         Correct Answer:   B
+
+         ----- COPY: Listening Question 2 -----
+         Question number:  2
+         Question:
+Students learn better when lessons are connected to:
+A) Abstract lists only
+B) Silent study only
+C) Real, meaningful contexts
+D) Long examinations only
+         Correct Answer:   C
+
+         ----- COPY: Listening Question 3 -----
+         Question number:  3
+         Question:
+Walking or cycling instead of driving:
+A) Improves health and reduces air pollution
+B) Increases air pollution
+C) Has no health benefit
+D) Is not mentioned
+         Correct Answer:   A
+
+         ----- COPY: Listening Question 4 -----
+         Question number:  4
+         Question:
+Locally grown food is described as:
+A) Less fresh
+B) More expensive only
+C) Fresher and able to reduce carbon emissions
+D) Impossible to find
+         Correct Answer:   C
+
+         ----- COPY: Listening Question 5 -----
+         Question number:  5
+         Question:
+Guided nature walks help students:
+A) Forget information
+B) Remember information more easily
+C) Avoid outdoor activity
+D) Travel longer distances
+         Correct Answer:   B
+
+         Open savol uchun:  walk;walking;nature walk
+
+STEP 4.  SAVE
+         Student: Tests → Listening → Start
+
+AUDIO ESLATMA:
+Audio MEDIA papkaga tushadi. Production serverda MEDIA_ROOT va
+https://domen/media/... URL ishlamasa player ovozsiz qoladi.
+
+
+################################################################################
+4. SPEAKING
+Student record/upload qiladi. Submit = teacher baholaydi.
+################################################################################
+
+STEP 1.  Speaking → Speaking materials → Add
+         Test material:  Speaking Practice
+         Title:          Speaking: Daily life and the environment
+         SAVE
+
+STEP 2.  Speaking → Speakings → Add     (PART 1)
+         Speaking material:  Speaking: Daily life and the environment
+         Speaking part:      Part 1
+         Prep time:          5
+         Answer time:        45
+         Comment:            Short answers
+
+         Pastida Speaking Questions — COPY:
+
+         Question number: 1
+         Question:
+Do you think the health of our planet and the health of our bodies are connected? Why?
+
+         Question number: 2
+         Question:
+Describe one simple daily habit that can help the environment in your city.
+
+         SAVE
+
+STEP 3.  (ixtiyoriy) Speaking → Speakings → Add     (PART 2)
+         Speaking part:      Part 2
+         Prep time:          20
+         Answer time:        60
+         Comment:            Long turn
+
+         Question number: 3
+         Question:
+Describe an environmental problem in your city. Say what it is, why it happens, and what people could do to improve the situation.
+
+         SAVE
+
+         ESLATMA: bir materialda Part 1 / 2 / 3 takrorlanmasin.
+
+STEP 4.  Student: Tests → Speaking → Start
+         Har savolga Record yoki audio Upload, keyin Submit
+         Baholash: /teacher/   yoki   Speaking → Speaking Answers
+
+
+################################################################################
+5. STUDENT / TEACHER USER QO‘SHISH
+################################################################################
+
+App → Users → Add
+  First name / Last name
+  Phone          (login shu raqam bo‘ladi, faqat raqam)
+  Role           Student  yoki  Teacher
+  Password1 / Password2
+  SAVE
+
+Teacherga is_staff kerak bo‘lsa, user ni ochib Permissions dan belgilang.
+Superadmin:  python manage.py createsuperuser   (faqat username + password)
+
+
+################################################################################
+6. TEKSHIRISH
+################################################################################
+
+1. Student bilan kiring (telefon + parol)
+2. Tests → Reading / Writing / Listening / Speaking → Start
+3. Reading / Listening Submit → Score: X / Y
+4. Writing / Speaking Submit → "Successfully submitted" → dashboard
+5. Teacher: /teacher/ da writing va speaking baholash (0–9)
+
+
+################################################################################
+TEZKOR XARITA
+################################################################################
+
+Reading
+  Test Material → Reading material → Reading (faqat matn / content)
+  → Reading Questions: number + question + answer
+  Chap matn / o‘ng savol    |  auto score
+
+Writing
+  Test Material → Writing material
+  → Writing Part 1 + prompt
+  → Writing Part 2 + prompt
+  Split editor + timer      |  teacher score
+
+Listening
+  Test Material → Listening material
+  → Listening (audio + audioscript + Show transcript)
+  → Listening Questions: number + question + answer
+  Audio chap / savol o‘ng   |  auto score
+
+Speaking
+  Test Material → Speaking material
+  → Speaking Part 1 (savol 1, 2)  [ixtiyoriy Part 2 / 3]
+  Record / upload           |  teacher score

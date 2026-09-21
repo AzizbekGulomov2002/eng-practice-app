@@ -78,6 +78,83 @@ def is_gradable_key(true_answer):
     return bool(key) and key not in {"OPINION", "OPEN", "-"}
 
 
+OPTION_RE = re.compile(r"^([A-Da-d])[\)\.\:,\-]\s*(.+)$")
+
+
+def parse_question_body(text):
+    """Turn admin question text into a prompt + optional A-D options."""
+    raw = (text or "").replace("\r\n", "\n").strip()
+    if not raw:
+        return "", "open", []
+    options = []
+    prompt_lines = []
+    for line in raw.split("\n"):
+        stripped = line.strip()
+        if not stripped:
+            continue
+        match = OPTION_RE.match(stripped)
+        if match:
+            letter = match.group(1).upper()
+            options.append(
+                {"value": letter, "label": f"{letter}) {match.group(2).strip()}"}
+            )
+        elif not options:
+            prompt_lines.append(stripped)
+        elif options:
+            options[-1]["label"] = options[-1]["label"] + " " + stripped
+    prompt = " ".join(prompt_lines).strip()
+    if len(options) >= 2:
+        return prompt or raw.split("\n")[0].strip(), "mcq", options
+    return raw, "open", []
+
+
+def parse_quiz_items(section):
+    """Build student-facing questions from ReadingAnswer / ListeningAnswer rows."""
+    items = []
+    answers = list(section.answers.all().order_by("question_number"))
+    soup = None
+    numbered = None
+    for answer in answers:
+        number = answer.question_number
+        body = (getattr(answer, "question", None) or "").strip()
+        prompt = ""
+        qtype = "open"
+        options = []
+        if body:
+            prompt, qtype, options = parse_question_body(body)
+        else:
+            if soup is None:
+                soup = BeautifulSoup(getattr(section, "questions", None) or "", "html.parser")
+                numbered = _numbered_items_from_html(getattr(section, "questions", None))
+            el = soup.find(attrs={"data-number": str(number)})
+            prompt = (numbered or {}).get(number) or f"Question {number}"
+            if el:
+                qtype = (el.get("data-type") or "open").strip().lower()
+                prompt_el = el.find(class_="quiz-prompt")
+                prompt = prompt_el.get_text(" ", strip=True) if prompt_el else el.get_text(" ", strip=True)
+                for opt in el.select(".quiz-options [data-value], .quiz-options li"):
+                    value = opt.get("data-value") or ""
+                    label = opt.get_text(" ", strip=True)
+                    if not value and label:
+                        value = label[:1].upper()
+                    if value:
+                        options.append({"value": value, "label": label})
+                if options and qtype == "open":
+                    qtype = "mcq"
+        prompt = re.sub(r"^\d+\.\s*", "", prompt or "").strip() or f"Question {number}"
+        items.append(
+            {
+                "number": number,
+                "prompt": prompt,
+                "qtype": qtype,
+                "options": options,
+                "true_answer": answer.true_answer,
+                "gradable": is_gradable_key(answer.true_answer),
+            }
+        )
+    return items
+
+
 def _numbered_items_from_html(html_text):
     soup = BeautifulSoup(html_text or "", "html.parser")
     found = {}
@@ -101,47 +178,6 @@ def _numbered_items_from_html(html_text):
         if m:
             found[int(m.group(1))] = m.group(2).strip()
     return found
-
-
-def parse_quiz_items(reading):
-    """Build student-facing questions from ReadingAnswer rows + questions HTML."""
-    soup = BeautifulSoup(reading.questions or "", "html.parser")
-    numbered = _numbered_items_from_html(reading.questions)
-    items = []
-    answers = list(reading.answers.all().order_by("question_number"))
-    if not answers and numbered:
-        answers = [type("A", (), {"question_number": n, "true_answer": ""}) for n in sorted(numbered)]
-    for answer in answers:
-        number = answer.question_number
-        el = soup.find(attrs={"data-number": str(number)})
-        prompt = numbered.get(number) or f"Question {number}"
-        qtype = "open"
-        options = []
-        if el:
-            qtype = (el.get("data-type") or "open").strip().lower()
-            prompt_el = el.find(class_="quiz-prompt")
-            prompt = prompt_el.get_text(" ", strip=True) if prompt_el else el.get_text(" ", strip=True)
-            for opt in el.select(".quiz-options [data-value], .quiz-options li"):
-                value = opt.get("data-value") or ""
-                label = opt.get_text(" ", strip=True)
-                if not value and label:
-                    value = label[:1].upper()
-                if value:
-                    options.append({"value": value, "label": label})
-            if options and qtype == "open":
-                qtype = "mcq"
-        prompt = re.sub(r"^\d+\.\s*", "", prompt or "").strip()
-        items.append(
-            {
-                "number": number,
-                "prompt": prompt,
-                "qtype": qtype,
-                "options": options,
-                "true_answer": answer.true_answer,
-                "gradable": is_gradable_key(answer.true_answer),
-            }
-        )
-    return items
 
 
 def build_quiz_html(items):

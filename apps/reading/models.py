@@ -27,7 +27,7 @@ class Reading(models.Model):
     
     reading_material = models.ForeignKey(ReadingMaterial, on_delete=models.CASCADE, related_name='reading_materials')
     content = RichTextField(verbose_name="Reading Content")
-    questions = RichTextField(verbose_name="Questions")
+    questions = RichTextField(verbose_name="Questions", blank=True)
     questions_raw = RichTextField(verbose_name="Original Questions (Unparsed)", blank=True, null=True, help_text="Stores original questions before parsing")
     passage_number = models.PositiveIntegerField(choices=PASSAGE_CHOICES, verbose_name="Passage Number")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -3960,6 +3960,12 @@ class ReadingAnswer(models.Model):
         related_query_name='answer'
     )
     question_number = models.PositiveIntegerField(verbose_name="Question Number", default=1)
+    question = models.TextField(
+        verbose_name="Question",
+        blank=True,
+        default="",
+        help_text="Write the question. For MCQ put options on new lines, e.g. A) ... B) ... C) ... D) ...",
+    )
     true_answer = models.CharField(
         max_length=500,
         null=True,

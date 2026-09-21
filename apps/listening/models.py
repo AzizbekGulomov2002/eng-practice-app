@@ -28,7 +28,7 @@ class Listening(models.Model):
     )
     
     listening_material = models.ForeignKey(ListeningMaterial, on_delete=models.CASCADE, related_name='listening_sections')
-    questions = RichTextField()
+    questions = RichTextField(blank=True)
     questions_raw = RichTextField(verbose_name="Original Questions (Unparsed)", blank=True, null=True, help_text="Stores original questions before parsing")
     title = models.CharField(null=True, blank=True, max_length=200)
     audio = models.FileField(upload_to='listening_audios/', null=True, blank=True)
@@ -1636,6 +1636,12 @@ class Listening(models.Model):
 class ListeningAnswer(models.Model):
     listening = models.ForeignKey(Listening, on_delete=models.CASCADE, related_name='answers')
     question_number = models.PositiveIntegerField(verbose_name="Question Number", default=1)
+    question = models.TextField(
+        verbose_name="Question",
+        blank=True,
+        default="",
+        help_text="Write the question. For MCQ put options on new lines, e.g. A) ... B) ... C) ... D) ...",
+    )
     true_answer = models.CharField(max_length=200, null=True, blank=True, verbose_name="Correct Answer")
     created_at = models.DateTimeField(auto_now_add=True)
 

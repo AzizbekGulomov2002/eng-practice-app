@@ -13,7 +13,6 @@ from apps.app.models import Test, TestAccept, TestMaterial, Users
 from apps.listening.models import Listening, ListeningAnswer, ListeningMaterial, ListeningUserAnswer
 from apps.reading.models import Reading, ReadingAnswer, ReadingMaterial, ReadingUserAnswer
 from apps.speaking.models import Speaking, SpeakingAnswer, SpeakingMaterial, SpeakingUserAnswer
-from apps.web.utils import build_quiz_html
 from apps.writing.models import Writing, WritingAnswer, WritingMaterial, WritingUserAnswer
 
 
@@ -35,11 +34,15 @@ LISTENING_SCRIPT = (
 
 
 def mcq(number, prompt, options, answer):
+    lines = [prompt]
+    for letter, text in options:
+        lines.append(f"{letter}) {text}")
     return {
         "number": number,
         "qtype": "mcq",
         "prompt": prompt,
         "options": [{"value": letter, "label": f"{letter}) {text}"} for letter, text in options],
+        "question": "\n".join(lines),
         "answer": answer,
     }
 
@@ -198,10 +201,9 @@ class Command(BaseCommand):
             description="Read the passage and answer the questions.",
         )
         reading.save()
-        quiz_html = build_quiz_html(items)
         Reading.objects.filter(pk=reading.pk).update(
-            questions=quiz_html,
-            questions_raw=quiz_html,
+            questions="",
+            questions_raw="",
             content=READING_TEXT,
             title="Cities and ecological intelligence",
         )
@@ -209,6 +211,7 @@ class Command(BaseCommand):
             ReadingAnswer.objects.create(
                 reading=reading,
                 question_number=item["number"],
+                question=item["question"],
                 true_answer=item["answer"],
             )
         self.stdout.write("Seeded 1 reading test with 5 questions.")
@@ -316,13 +319,13 @@ class Command(BaseCommand):
                 "B",
             ),
         ]
-        quiz_html = build_quiz_html(items)
+        quiz_html = ""
         section = Listening(
             listening_material=lm,
             listening_section=1,
             title="Part 1",
-            questions=quiz_html,
-            questions_raw=quiz_html,
+            questions="",
+            questions_raw="",
             description="Listen and answer the questions.",
             audioscript=LISTENING_SCRIPT,
             is_script=True,
@@ -339,6 +342,7 @@ class Command(BaseCommand):
             ListeningAnswer.objects.create(
                 listening=section,
                 question_number=item["number"],
+                question=item["question"],
                 true_answer=item["answer"],
             )
         self.stdout.write("Seeded 1 listening test with 5 questions (transcript enabled).")
