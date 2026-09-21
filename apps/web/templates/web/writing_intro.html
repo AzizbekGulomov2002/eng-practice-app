@@ -1,0 +1,28 @@
+{% extends "web/base.html" %}
+{% block title %}{{ material.title }}{% endblock %}
+{% block body_class %}inner_page exam-gate{% endblock %}
+{% block content %}
+<div class="gate-wrap">
+   <div class="gate-card gate-card-wide">
+      <div class="gate-icon"><i class="fa fa-pencil" aria-hidden="true"></i></div>
+      <h1>{{ material.title|default:"Writing" }}</h1>
+      <p><strong>Time:</strong> {{ time_label }}</p>
+      <h2>INSTRUCTIONS TO CANDIDATES</h2>
+      <ul>
+         <li>Answer both parts.</li>
+         <li>You can change your answers at any time during the test.</li>
+      </ul>
+      <h2>INFORMATION FOR CANDIDATES</h2>
+      <ul>
+         <li>There are two parts in this test.</li>
+         <li>Part 2 contributes twice as much as Part 1 to the writing score.</li>
+         <li>The test clock will show you when there are 10 minutes and 5 minutes remaining.</li>
+      </ul>
+      <form method="post">
+         {% csrf_token %}
+         <input type="hidden" name="start_writing" value="1">
+         <button class="gate-btn" type="submit">Start test</button>
+      </form>
+   </div>
+</div>
+{% endblock %}

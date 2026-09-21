@@ -1,0 +1,27 @@
+/* TestAccept "Test material" filter horizontal kengligi */
+
+/* Faqat Available (chap tomondagi) selectorni kengaytiramiz */
+#id_test_material_from {
+    width: 900px !important;
+    min-width: 900px !important;
+}
+
+/* Selector konteynerlari uchun width – faqat Available kengaytirilgan
+   Chosen esa Django default admin o'lchamida qoladi */
+.selector-available select {
+    width: 1000px !important;
+    min-width: 1000px !important;
+    white-space: nowrap;
+    overflow-x: auto;  /* har bir Available select ichida ham horizontal scroll bo'lsin */
+}
+
+.selector-available {
+    max-width: 100%;
+    overflow-x: auto;  /* faqat Available card'ga gorizontal scroll */
+}
+
+/* Umumiy blok normal bo'lsin, scrollni faqat Available card oladi */
+.selector {
+    max-width: 100%;
+    box-sizing: border-box;
+}

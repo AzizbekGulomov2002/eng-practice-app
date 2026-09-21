@@ -1,0 +1,72 @@
+{% extends "web/base.html" %}
+{% load static %}
+{% block title %}{{ material.title }} — Reading{% endblock %}
+{% block body_class %}inner_page exam-writing{% endblock %}
+{% block content %}
+<div class="exam-shell">
+   <header class="exam-topbar">
+      <div class="exam-top-left">
+         <div class="exam-candidate"><i class="fa fa-user-circle-o" aria-hidden="true"></i> Candidate: {{ candidate_name }}</div>
+      </div>
+      <div class="exam-top-center">
+         {% if already %}<div class="exam-score">Score: {{ correct }} / {{ total }}</div>{% else %}<div class="exam-skill-label">Reading</div>{% endif %}
+      </div>
+      <div class="exam-top-right">
+         <label class="exam-font">Font size:
+            <select id="examFontSize">
+               <option value="12px">12px</option>
+               <option value="14px">14px</option>
+               <option value="16px" selected>16px</option>
+               <option value="18px">18px</option>
+               <option value="20px">20px</option>
+            </select>
+         </label>
+         <a class="exam-back" href="{% url 'test_list' %}"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</a>
+      </div>
+   </header>
+
+   <form method="post" id="examForm" class="exam-form">
+      {% csrf_token %}
+      <div class="exam-split" id="examSplit">
+         <aside class="exam-pane exam-prompt" id="examLeft">
+            {% for passage in passages %}
+            <h2>{{ passage.title|default:passage.get_passage_number_display }}</h2>
+            <div class="app-rich reading-content">{{ passage.content|safe }}</div>
+            {% empty %}
+            <p class="exam-left-empty">No reading text has been added yet.</p>
+            {% endfor %}
+         </aside>
+         <div class="exam-gutter" id="examGutter" role="separator" aria-orientation="vertical"></div>
+         <section class="exam-pane exam-questions" id="examRight">
+            {% include "web/_exam_questions.html" %}
+         </section>
+      </div>
+      <div class="exam-bottom">
+         <div class="exam-part-label">Reading</div>
+         <div class="exam-nav">
+            {% if not readonly %}
+            <button class="exam-submit" type="submit">Submit</button>
+            {% else %}
+            <span class="exam-submitted-label">Submitted</span>
+            {% endif %}
+         </div>
+      </div>
+   </form>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/exam-tools.js' %}"></script>
+<script>
+(function () {
+  if (!window.ExamTools) return;
+  ExamTools.attachHighlight(document.getElementById("examLeft"));
+  ExamTools.attachFontSize(document.getElementById("examFontSize"), document.getElementById("examSplit"));
+  ExamTools.attachSplit(
+    document.getElementById("examSplit"),
+    document.getElementById("examLeft"),
+    document.getElementById("examGutter")
+  );
+  ExamTools.attachLockAnswers(document.getElementById("examForm"));
+})();
+</script>
+{% endblock %}

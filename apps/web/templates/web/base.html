@@ -1,0 +1,87 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="utf-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <title>{% block title %}EcoCourse{% endblock %}</title>
+   <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+   <link rel="stylesheet" href="{% static 'css/style.css' %}">
+   <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+   <link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
+   <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}">
+   <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="main-layout {% block body_class %}inner_page{% endblock %}">
+   <div class="loader_bg">
+      <div class="loader"><img src="{% static 'images/loading.gif' %}" alt=""/></div>
+   </div>
+   <div class="full_bg">
+      <header class="header-area">
+         <div class="container-fluid">
+            <div class="row d_flex">
+               <div class="col-md-2 col-sm-3">
+                  <div class="logo">
+                     <a href="{% url 'home' %}">Eco<span>Course</span></a>
+                  </div>
+               </div>
+               <div class="col-md-8 col-sm-9">
+                  <div class="navbar-area">
+                     <nav class="site-navbar">
+                        <ul>
+                           <li><a class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">Home</a></li>
+                           <li><a class="{% if request.resolver_match.url_name == 'about' %}active{% endif %}" href="{% url 'about' %}">About</a></li>
+                           {% if user.is_authenticated %}
+                           <li><a class="{% if request.resolver_match.url_name == 'test_list' or request.resolver_match.url_name == 'test_detail' or request.resolver_match.url_name == 'start_skill' %}active{% endif %}" href="{% url 'test_list' %}">Tests</a></li>
+                           <li><a class="{% if request.resolver_match.url_name == 'my_results' %}active{% endif %}" href="{% url 'my_results' %}">Results</a></li>
+                           {% endif %}
+                        </ul>
+                        <button class="nav-toggler" type="button"><span></span></button>
+                     </nav>
+                  </div>
+               </div>
+               <div class="col-md-2 padd_0 d_none">
+                  <ul class="email text_align_right">
+                     {% if user.is_authenticated %}
+                     <li><a href="{% url 'logout' %}">Logout</a></li>
+                     {% else %}
+                     <li><a class="{% if request.resolver_match.url_name == 'sign_in' %}active{% endif %}" href="{% url 'sign_in' %}">Login</a></li>
+                     {% endif %}
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </header>
+      {% block hero %}{% endblock %}
+   </div>
+
+   {% if messages %}
+   <div class="container app-messages">
+      {% for message in messages %}
+      <div class="app-alert app-alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+   </div>
+   {% endif %}
+
+   {% block content %}{% endblock %}
+
+   <script src="{% static 'js/jquery.min.js' %}"></script>
+   <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+   <script src="{% static 'js/jquery-3.0.0.min.js' %}"></script>
+   <script src="{% static 'js/owl.carousel.min.js' %}"></script>
+   <script src="{% static 'js/custom.js' %}"></script>
+   {% block extra_js %}{% endblock %}
+   <a href="#top" class="back-to-top" id="backToTop" title="Back to top" aria-label="Back to top"><i class="fa fa-angle-up" aria-hidden="true"></i></a>
+   <script>
+   (function () {
+     var btn = document.getElementById("backToTop");
+     if (!btn) return;
+     btn.addEventListener("click", function (e) {
+       e.preventDefault();
+       window.scrollTo({ top: 0, behavior: "smooth" });
+     });
+   })();
+   </script>
+</body>
+</html>

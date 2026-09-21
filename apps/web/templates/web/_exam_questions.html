@@ -1,0 +1,35 @@
+{% for block in question_blocks %}
+{% if block.title %}<h3>{{ block.title }}</h3>{% endif %}
+<ol class="comp-list">
+   {% for item in block.items %}
+   <li class="comp-q">
+      <p class="comp-prompt"><strong>{{ item.number }}.</strong> {{ item.prompt }}</p>
+      {% if item.options %}
+         <div class="option-list">
+         {% for opt in item.options %}
+         <label class="app-option" for="q_{{ block.obj_id }}_{{ item.number }}_{{ opt.value }}">
+            <input id="q_{{ block.obj_id }}_{{ item.number }}_{{ opt.value }}"
+               type="radio"
+               name="q_{{ block.obj_id }}_{{ item.number }}"
+               value="{{ opt.value }}"
+               {% if item.given|lower == opt.value|lower %}checked{% endif %}
+               {% if readonly %}disabled{% endif %}>
+            <span>{{ opt.label }}</span>
+         </label>
+         {% endfor %}
+         </div>
+      {% else %}
+         <textarea class="answer-line" name="q_{{ block.obj_id }}_{{ item.number }}" {% if readonly %}readonly{% endif %} placeholder="Write your answer">{{ item.given }}</textarea>
+      {% endif %}
+      {% if show_answers %}
+         {% if item.gradable %}
+            {% if item.is_true %}<strong class="ok">Correct</strong>{% else %}<strong class="bad">Incorrect</strong>{% endif %}
+            {% if item.true_answer %}<p class="app-key">Key: {{ item.true_answer }}</p>{% endif %}
+         {% else %}
+            <p class="app-key">Open response</p>
+         {% endif %}
+      {% endif %}
+   </li>
+   {% endfor %}
+</ol>
+{% endfor %}

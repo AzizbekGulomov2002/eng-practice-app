@@ -1,0 +1,75 @@
+{% extends "web/base.html" %}
+{% load static %}
+{% block title %}Tests — EcoCourse{% endblock %}
+{% block content %}
+<div class="services">
+   <div class="container">
+      <div class="test-head">
+         <span>All skills</span>
+         <h2>Reading, writing, listening, speaking</h2>
+      </div>
+      <div class="row">
+         <div class="col-lg-3 col-md-6">
+            <a class="skill-card" href="{% url 'start_skill' 'reading' %}">
+               <div class="services_box text_align_left">
+                  <figure><img src="{% static 'images/reading.png' %}" alt="Reading"/></figure>
+                  <div class="veget">
+                     <h3>Reading</h3>
+                     <span class="read_more">Start</span>
+                  </div>
+               </div>
+            </a>
+         </div>
+         <div class="col-lg-3 col-md-6">
+            <a class="skill-card" href="{% url 'start_skill' 'writing' %}">
+               <div class="services_box text_align_left">
+                  <figure><img src="{% static 'images/writing.png' %}" alt="Writing"/></figure>
+                  <div class="veget">
+                     <h3>Writing</h3>
+                     <span class="read_more">Start</span>
+                  </div>
+               </div>
+            </a>
+         </div>
+         <div class="col-lg-3 col-md-6">
+            <a class="skill-card" href="{% url 'start_skill' 'listening' %}">
+               <div class="services_box text_align_left">
+                  <figure><img src="{% static 'images/listening.png' %}" alt="Listening"/></figure>
+                  <div class="veget">
+                     <h3>Listening</h3>
+                     <span class="read_more">Start</span>
+                  </div>
+               </div>
+            </a>
+         </div>
+         <div class="col-lg-3 col-md-6">
+            <a class="skill-card" href="{% url 'start_skill' 'speaking' %}">
+               <div class="services_box text_align_left">
+                  <figure><img src="{% static 'images/speaking.png' %}" alt="Speaking"/></figure>
+                  <div class="veget">
+                     <h3>Speaking</h3>
+                     <span class="read_more">Start</span>
+                  </div>
+               </div>
+            </a>
+         </div>
+      </div>
+   </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get("submitted") === "1") {
+    alert("Successfully submitted");
+    params.delete("submitted");
+    var qs = params.toString();
+    var url = window.location.pathname + (qs ? "?" + qs : "");
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState({}, "", url);
+    }
+  }
+})();
+</script>
+{% endblock %}

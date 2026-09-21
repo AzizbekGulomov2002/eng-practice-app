@@ -1,0 +1,56 @@
+{% extends "web/base.html" %}
+{% block title %}Results — EcoCourse{% endblock %}
+{% block content %}
+<div class="news">
+   <div class="container">
+      <div class="titlepage text_align_left">
+         <span>Your work</span>
+         <h2>Results</h2>
+      </div>
+
+      <h3 class="app-section-title">Reading / Quiz</h3>
+      {% for row in reading_rows %}
+      <div class="app-card">
+         <h3>{{ row.material.title }}</h3>
+         <p>{{ row.correct }} / {{ row.total }} correct · auto-checked</p>
+         <a class="read_more" href="{% url 'take_reading' row.material.id %}">Open</a>
+      </div>
+      {% empty %}
+      <p class="app-note">No reading submissions yet.</p>
+      {% endfor %}
+
+      <h3 class="app-section-title">Listening</h3>
+      {% for row in listening_rows %}
+      <div class="app-card">
+         <h3>{{ row.material.title }}</h3>
+         <p>{{ row.correct }} / {{ row.total }} correct · auto-checked</p>
+         <a class="read_more" href="{% url 'take_listening' row.material.id %}">Open</a>
+      </div>
+      {% empty %}
+      <p class="app-note">No listening submissions yet.</p>
+      {% endfor %}
+
+      <h3 class="app-section-title">Writing</h3>
+      {% for row in writing_rows %}
+      <div class="app-card">
+         <h3>{{ row.writing.writing_material.title }} · Part {{ row.writing.writing_task }}</h3>
+         <p>{% if row.score != None %}Score: {{ row.score }}{% else %}Waiting for teacher{% endif %}</p>
+         <a class="read_more" href="{% url 'take_writing' row.writing.writing_material_id %}">Open</a>
+      </div>
+      {% empty %}
+      <p class="app-note">No writing submissions yet.</p>
+      {% endfor %}
+
+      <h3 class="app-section-title">Speaking</h3>
+      {% for row in speaking_rows %}
+      <div class="app-card">
+         <h3>{{ row.speaking.title }} · Q{{ row.question_number }}</h3>
+         <p>{% if row.score != None %}Score: {{ row.score }}{% else %}Waiting for teacher{% endif %}</p>
+         <a class="read_more" href="{% url 'take_speaking' row.speaking_id %}">Open</a>
+      </div>
+      {% empty %}
+      <p class="app-note">No speaking submissions yet.</p>
+      {% endfor %}
+   </div>
+</div>
+{% endblock %}

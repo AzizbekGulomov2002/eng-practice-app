@@ -1,0 +1,46 @@
+{% extends "web/base.html" %}
+{% load static %}
+{% block title %}{{ test.title }} — EcoCourse{% endblock %}
+{% block content %}
+<div class="test-page">
+   <div class="container">
+      <div class="test-head">
+         <span>{{ test.test_type }}</span>
+         <h2>{{ test.title|default:test.test_number }}</h2>
+      </div>
+      {% for section in sections %}
+      <h3 class="app-section-title">{{ section.material.title|default:"Test material" }}</h3>
+      <div class="row">
+         {% for item in section.progress %}
+         <div class="col-md-4">
+            <div class="latest">
+               <div class="nostrud">
+                  <figure class="skill-thumb"><img src="{% static item.image %}" alt="{{ item.kind }}"></figure>
+                  <h3>{{ item.title }}</h3>
+                  <p>{{ item.kind|upper }}
+                     {% if item.submitted %} · Submitted{% else %} · Not started{% endif %}
+                     {% if item.kind == 'reading' or item.kind == 'listening' %}{% if item.submitted %} · {{ item.correct }}/{{ item.total }}{% endif %}{% endif %}
+                     {% if item.pending_teacher %} · Waiting for teacher{% endif %}
+                  </p>
+                  {% if item.kind == 'reading' %}
+                  <a class="read_more" href="{% url 'take_reading' item.id %}">{% if item.submitted %}Review{% else %}Start{% endif %}</a>
+                  {% elif item.kind == 'writing' %}
+                  <a class="read_more" href="{% url 'take_writing' item.id %}">{% if item.submitted %}Review{% else %}Start{% endif %}</a>
+                  {% elif item.kind == 'speaking' %}
+                  <a class="read_more" href="{% url 'take_speaking' item.id %}">{% if item.submitted %}Review{% else %}Start{% endif %}</a>
+                  {% elif item.kind == 'listening' %}
+                  <a class="read_more" href="{% url 'take_listening' item.id %}">{% if item.submitted %}Review{% else %}Start{% endif %}</a>
+                  {% endif %}
+               </div>
+            </div>
+         </div>
+         {% empty %}
+         <div class="col-md-12"><p class="app-note">No sections in this material yet.</p></div>
+         {% endfor %}
+      </div>
+      {% empty %}
+      <p class="app-note">No materials available.</p>
+      {% endfor %}
+   </div>
+</div>
+{% endblock %}

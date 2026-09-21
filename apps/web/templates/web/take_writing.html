@@ -1,0 +1,143 @@
+{% extends "web/base.html" %}
+{% load static %}
+{% block title %}{{ material.title }} — Writing Part {{ writing.writing_task }}{% endblock %}
+{% block body_class %}inner_page exam-writing{% endblock %}
+{% block content %}
+<div class="exam-shell">
+   <header class="exam-topbar">
+      <div class="exam-top-left">
+         <div class="exam-candidate"><i class="fa fa-user-circle-o" aria-hidden="true"></i> Candidate: {{ candidate_name }}</div>
+      </div>
+      <div class="exam-top-center">
+         <div class="exam-clock">
+            {% if timer_seconds %}
+            <span id="writing-timer" data-seconds="{{ timer_seconds }}" data-key="{{ timer_key }}"><i class="fa fa-clock-o" aria-hidden="true"></i> Time Left: 00:00</span>
+            {% else %}
+            <span>Submitted</span>
+            {% endif %}
+         </div>
+      </div>
+      <div class="exam-top-right">
+         <a class="exam-back" href="{% url 'test_list' %}"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</a>
+      </div>
+   </header>
+
+   <form method="post" id="writing-form" class="exam-form">
+      {% csrf_token %}
+      <div class="exam-split" id="examSplit">
+         <aside class="exam-pane exam-prompt" id="examLeft">
+            <h2>Part {{ writing.writing_task }}</h2>
+            {% if writing.description %}<p class="exam-desc">{{ writing.description }}</p>{% endif %}
+            {% for q in questions %}
+            <div class="app-rich">{{ q.question|safe }}</div>
+            {% endfor %}
+            {% if answer and answer.score != None %}<p class="app-meta">Score: {{ answer.score }}</p>{% endif %}
+            {% if answer and answer.feedback %}<div class="app-feedback">{{ answer.feedback|safe }}</div>{% endif %}
+         </aside>
+         <div class="exam-gutter" id="examGutter" role="separator" aria-orientation="vertical"></div>
+         <section class="exam-pane exam-editor" id="examRight">
+            <textarea id="writingArea" class="exam-textarea" name="writing_{{ writing.id }}" {% if readonly %}readonly{% endif %} placeholder="Write your answer here">{{ answer.answer|default:'' }}</textarea>
+            <div class="exam-editor-meta">
+               <span>Word count: <strong id="wordCount">0</strong></span>
+               <label class="exam-font">Font size:
+                  <select id="writingFontSize">
+                     <option value="12px">12px</option>
+                     <option value="14px">14px</option>
+                     <option value="16px" selected>16px</option>
+                     <option value="18px">18px</option>
+                     <option value="20px">20px</option>
+                  </select>
+               </label>
+            </div>
+         </section>
+      </div>
+      <div class="exam-bottom">
+         <div class="exam-part-label">Part {{ writing.writing_task }}</div>
+         <div class="exam-nav">
+            {% if prev_writing %}
+            <a class="exam-nav-btn" href="{% url 'take_writing_task' material.id prev_writing.writing_task %}" title="Previous part"><i class="fa fa-angle-left"></i></a>
+            {% else %}
+            <span class="exam-nav-btn is-disabled"><i class="fa fa-angle-left"></i></span>
+            {% endif %}
+            {% if next_writing %}
+            <a class="exam-nav-btn" href="{% url 'take_writing_task' material.id next_writing.writing_task %}" title="Next part"><i class="fa fa-angle-right"></i></a>
+            {% else %}
+            <span class="exam-nav-btn is-disabled"><i class="fa fa-angle-right"></i></span>
+            {% endif %}
+            {% if not readonly %}
+            <button class="exam-submit" type="submit">Submit</button>
+            {% else %}
+            <span class="exam-submitted-label">Submitted</span>
+            {% endif %}
+         </div>
+      </div>
+   </form>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/exam-tools.js' %}"></script>
+<script>
+(function () {
+  if (window.ExamTools) {
+    ExamTools.attachHighlight(document.getElementById("examLeft"));
+    ExamTools.attachFontSize(document.getElementById("writingFontSize"), document.getElementById("writingArea"));
+    ExamTools.attachSplit(
+      document.getElementById("examSplit"),
+      document.getElementById("examLeft"),
+      document.getElementById("examGutter")
+    );
+  }
+  var area = document.getElementById("writingArea");
+  var count = document.getElementById("wordCount");
+  function words() {
+    if (!area || !count) return;
+    var text = (area.value || "").replace(/[.,!?;:"'()\[\]{}]/g, " ").replace(/\s+/g, " ").trim();
+    count.textContent = text ? text.split(" ").length : 0;
+  }
+  if (area) {
+    area.addEventListener("input", words);
+    words();
+  }
+
+  var form = document.getElementById("writing-form");
+  var el = document.getElementById("writing-timer");
+  if (!form || !el) return;
+  var total = parseInt(el.getAttribute("data-seconds"), 10) || 0;
+  var key = el.getAttribute("data-key");
+  var stored = parseInt(sessionStorage.getItem(key) || "", 10);
+  var remaining = (!isNaN(stored) && stored >= 0 && stored <= total) ? stored : total;
+  function pad(n) { return n < 10 ? "0" + n : String(n); }
+  function render() {
+    var m = Math.floor(remaining / 60);
+    var s = remaining % 60;
+    el.innerHTML = '<i class="fa fa-clock-o" aria-hidden="true"></i> Time Left: ' + pad(m) + ":" + pad(s);
+    if (remaining <= 600) el.classList.add("is-low");
+  }
+  function finish() {
+    sessionStorage.removeItem(key);
+    if (!form.querySelector('input[name="timed_out"]')) {
+      var input = document.createElement("input");
+      input.type = "hidden";
+      input.name = "timed_out";
+      input.value = "1";
+      form.appendChild(input);
+    }
+    form.submit();
+  }
+  function tick() {
+    render();
+    if (remaining <= 0) {
+      finish();
+      return;
+    }
+    remaining -= 1;
+    sessionStorage.setItem(key, String(remaining));
+    setTimeout(tick, 1000);
+  }
+  form.addEventListener("submit", function () {
+    sessionStorage.removeItem(key);
+  });
+  tick();
+})();
+</script>
+{% endblock %}

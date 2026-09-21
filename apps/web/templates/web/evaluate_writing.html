@@ -1,0 +1,30 @@
+{% extends "web/base.html" %}
+{% block title %}Evaluate writing{% endblock %}
+{% block content %}
+<div class="contact">
+   <div class="container">
+      <div class="titlepage text_align_left">
+         <span>Writing</span>
+         <h2>{{ answer.user.first_name }} {{ answer.user.last_name }}</h2>
+      </div>
+      <article class="app-card">
+         <h3>{{ answer.writing.writing_material.title }} · Part {{ answer.writing.writing_task }}</h3>
+         {% for q in questions %}
+         <div class="app-rich">{{ q.question|safe }}</div>
+         {% endfor %}
+         <h3>Student answer</h3>
+         <div class="app-student-answer">{{ answer.answer|linebreaksbr }}</div>
+         <p class="app-meta">{{ answer.word_count }} words</p>
+      </article>
+      <form class="main_form" method="post">
+         {% csrf_token %}
+         <input class="form_control" type="number" step="0.5" min="0" max="9" name="score" placeholder="Score 0–9" value="{{ answer.score|default_if_none:'' }}" required>
+         <textarea class="textarea" name="feedback" placeholder="Feedback">{{ answer.feedback|default_if_none:'' }}</textarea>
+         <div class="group_btn">
+            <button class="send_btn" type="submit">Save score</button>
+         </div>
+      </form>
+      <p class="app-back"><a href="{% url 'teacher_home' %}">Back</a></p>
+   </div>
+</div>
+{% endblock %}

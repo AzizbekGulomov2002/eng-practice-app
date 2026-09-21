@@ -1,0 +1,5 @@
+.brand-link .brand-image,
+.login-logo,
+.login-logo img {
+    display: none !important;
+}

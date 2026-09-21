@@ -1,0 +1,32 @@
+<!-- Template: Listening Matching (Drag-Drop Sentence Endings) -->
+<!-- This template documents the exact output structure the parser generates. -->
+
+<!--
+Expected element:
+<drag-drop-matching-sentence-endings
+  data-repeat="True|False"
+  data-options='[{"value":"A","label":"Label A"}, {"value":"B","label":"Label B"}, ...]'>
+  <h3><em><strong>Questions X–Y</strong></em></h3>
+  <p><em>{Instruction line 1}</em></p>
+  <p><em>Write the correct letter, <strong>A–H</strong>, in boxes X–Y on your answer sheet.</em></p>
+  <p>X. <strong>{Question text}</strong> <drag-drop-sentence-input data-question-number='X' data-question-type='matching_sentence_endings'></drag-drop-sentence-input></p>
+  ...
+</drag-drop-matching-sentence-endings>
+-->
+
+<!-- Example (for Questions 27–30): -->
+<drag-drop-matching-sentence-endings
+  data-repeat="False"
+  data-options='[{"value":"A","label":"Too messy"},{"value":"B","label":"Too boring"},{"value":"C","label":"Too difficult"},{"value":"D","label":"Too much equipment"},{"value":"E","label":"Too long"},{"value":"G","label":"Too noisy"},{"value":"H","label":"Too dangerous"}]'>
+  <h3><em><strong>Questions 27–30</strong></em></h3>
+  <p><em>What problems do the speakers identify for each experiment?</em></p>
+  <p><em>Choose your answers from the box and write the correct letter, <strong>A–H</strong>, next to questions 27–30.</em></p>
+
+  <p>27. <strong>Experiment 1</strong> <drag-drop-sentence-input data-question-number='27' data-question-type='matching_sentence_endings'></drag-drop-sentence-input></p>
+  <p>28. <strong>Experiment 2</strong> <drag-drop-sentence-input data-question-number='28' data-question-type='matching_sentence_endings'></drag-drop-sentence-input></drag-drop-sentence-input></p>
+  <p>29. <strong>Experiment 3</strong> <drag-drop-sentence-input data-question-number='29' data-question-type='matching_sentence_endings'></drag-drop-sentence-input></p>
+  <p>Example: Experiment 4 — <strong>F</strong> Too easy</p>
+  <p>30. <strong>Experiment 4</strong> <drag-drop-sentence-input data-question-number='30' data-question-type='matching_sentence_endings'></drag-drop-sentence-input></p>
+</drag-drop-matching-sentence-endings>
+
+

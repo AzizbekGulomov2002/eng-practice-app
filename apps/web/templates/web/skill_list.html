@@ -1,0 +1,39 @@
+{% extends "web/base.html" %}
+{% load static %}
+{% block title %}{{ skill_title }} — EcoCourse{% endblock %}
+{% block content %}
+<div class="test-page">
+   <div class="container">
+      <div class="test-head">
+         <span>Assigned work</span>
+         <h2>{{ skill_title }} tests</h2>
+      </div>
+      {% if not items %}
+      <p class="app-note">No {{ skill }} tests are assigned to you yet.</p>
+      {% endif %}
+      <div class="row">
+         {% for item in items %}
+         <div class="col-md-4">
+            <div class="services_box_main">
+               <div class="services_box text_align_left">
+                  <figure><img src="{% static skill_image %}" alt="{{ skill_title }}"/></figure>
+                  <div class="veget">
+                     <h3>{{ item.title }}</h3>
+                     <p>{{ item.test.title|default:item.test.test_number }}
+                        {% if item.submitted %} · Submitted{% else %} · Not started{% endif %}
+                        {% if item.kind == 'reading' or item.kind == 'listening' %}
+                           {% if item.submitted %} · {{ item.correct }}/{{ item.total }}{% endif %}
+                        {% endif %}
+                        {% if item.pending_teacher %} · Waiting for teacher{% endif %}
+                     </p>
+                  </div>
+               </div>
+               <a class="read_more" href="{% url take_url item.id %}">{% if item.submitted %}Review{% else %}Start{% endif %}</a>
+            </div>
+         </div>
+         {% endfor %}
+      </div>
+      <p class="app-back"><a href="{% url 'test_list' %}">Back</a></p>
+   </div>
+</div>
+{% endblock %}

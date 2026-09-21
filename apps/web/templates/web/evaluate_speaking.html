@@ -1,0 +1,28 @@
+{% extends "web/base.html" %}
+{% block title %}Evaluate speaking{% endblock %}
+{% block content %}
+<div class="contact">
+   <div class="container">
+      <div class="titlepage text_align_left">
+         <span>Speaking</span>
+         <h2>{{ answer.user.first_name }} {{ answer.user.last_name }}</h2>
+      </div>
+      <article class="app-card">
+         <h3>{{ answer.speaking.title }} · Q{{ answer.question_number }}</h3>
+         {% if question %}<div class="app-rich">{{ question.question|safe }}</div>{% endif %}
+         {% if answer.record %}
+         <audio controls src="{{ answer.record.url }}"></audio>
+         {% endif %}
+      </article>
+      <form class="main_form" method="post">
+         {% csrf_token %}
+         <input class="form_control" type="number" step="0.5" min="0" max="9" name="score" placeholder="Score 0–9" value="{{ answer.score|default_if_none:'' }}" required>
+         <textarea class="textarea" name="feedback" placeholder="Feedback">{{ answer.feedback|default_if_none:'' }}</textarea>
+         <div class="group_btn">
+            <button class="send_btn" type="submit">Save score</button>
+         </div>
+      </form>
+      <p class="app-back"><a href="{% url 'teacher_home' %}">Back</a></p>
+   </div>
+</div>
+{% endblock %}

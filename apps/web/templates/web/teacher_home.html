@@ -1,0 +1,50 @@
+{% extends "web/base.html" %}
+{% block title %}Evaluate — EcoCourse{% endblock %}
+{% block content %}
+<div class="news">
+   <div class="container">
+      <div class="titlepage text_align_left">
+         <span>Teacher</span>
+         <h2>Evaluate</h2>
+      </div>
+
+      <h3 class="app-section-title">Writing waiting</h3>
+      {% for row in writing_pending %}
+      <div class="app-card">
+         <h3>{{ row.user.first_name }} {{ row.user.last_name }} · {{ row.writing.writing_material.title }}</h3>
+         <p>{{ row.word_count }} words · {{ row.created_at }}</p>
+         <a class="read_more" href="{% url 'evaluate_writing' row.id %}">Evaluate</a>
+      </div>
+      {% empty %}
+      <p class="app-note">No writing waiting.</p>
+      {% endfor %}
+
+      <h3 class="app-section-title">Speaking waiting</h3>
+      {% for row in speaking_pending %}
+      <div class="app-card">
+         <h3>{{ row.user.first_name }} {{ row.user.last_name }} · {{ row.speaking.title }} · Q{{ row.question_number }}</h3>
+         <p>{{ row.created_at }}</p>
+         <a class="read_more" href="{% url 'evaluate_speaking' row.id %}">Evaluate</a>
+      </div>
+      {% empty %}
+      <p class="app-note">No speaking waiting.</p>
+      {% endfor %}
+
+      <h3 class="app-section-title">Recently scored writing</h3>
+      {% for row in writing_done %}
+      <div class="app-card">
+         <h3>{{ row.user }} · {{ row.score }}</h3>
+         <a class="read_more" href="{% url 'evaluate_writing' row.id %}">Open</a>
+      </div>
+      {% endfor %}
+
+      <h3 class="app-section-title">Recently scored speaking</h3>
+      {% for row in speaking_done %}
+      <div class="app-card">
+         <h3>{{ row.user }} · Q{{ row.question_number }} · {{ row.score }}</h3>
+         <a class="read_more" href="{% url 'evaluate_speaking' row.id %}">Open</a>
+      </div>
+      {% endfor %}
+   </div>
+</div>
+{% endblock %}

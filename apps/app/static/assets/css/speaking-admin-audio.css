@@ -1,0 +1,104 @@
+/**
+ * Django Admin uchun Speaking Audio Player Styles
+ * JavaScript faylsiz, faqat HTML5 audio element
+ */
+
+.speaking-audio-player-wrapper {
+    min-width: 400px;
+    max-width: 600px;
+    padding: 8px 0;
+}
+
+.speaking-audio-player-wrapper > div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.speaking-audio-player-wrapper audio {
+    flex: 1;
+    height: 40px;
+    outline: none;
+}
+
+/* Download button */
+.audio-download-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #666;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+.audio-download-btn:hover {
+    background: #f5f5f5;
+    color: #667eea;
+    transform: translateY(-2px);
+}
+
+.audio-download-btn:active {
+    transform: translateY(0);
+}
+
+.audio-download-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Audio element uchun yaxshiroq ko'rinish */
+.speaking-audio-player-wrapper audio::-webkit-media-controls-panel {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 4px;
+}
+
+.speaking-audio-player-wrapper audio::-webkit-media-controls-play-button {
+    background-color: #667eea;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.speaking-audio-player-wrapper audio::-webkit-media-controls-timeline {
+    background-color: #e0e0e0;
+    border-radius: 2px;
+    margin: 0 8px;
+}
+
+.speaking-audio-player-wrapper audio::-webkit-media-controls-current-time-display,
+.speaking-audio-player-wrapper audio::-webkit-media-controls-time-remaining-display {
+    color: #667eea;
+    font-weight: 500;
+    font-size: 12px;
+}
+
+.speaking-audio-player-wrapper audio::-webkit-media-controls-volume-slider {
+    background-color: #e0e0e0;
+    border-radius: 2px;
+}
+
+/* Firefox uchun */
+.speaking-audio-player-wrapper audio::-moz-media-controls {
+    background-color: #f8f9fa;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .speaking-audio-player-wrapper {
+        min-width: 300px;
+        max-width: 100%;
+    }
+    
+    .speaking-audio-player-wrapper audio {
+        height: 35px;
+    }
+}
+
