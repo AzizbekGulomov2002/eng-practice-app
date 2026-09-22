@@ -467,15 +467,25 @@ def take_speaking(request, material_id):
         .prefetch_related("speaking_answer")
         .order_by("speaking_part", "id")
     )
+    if not sections:
+        messages.error(request, "This speaking test has no parts yet.")
+        return redirect("test_list")
+
     existing = {
         row.question_number: row
         for row in SpeakingUserAnswer.objects.filter(user=request.user, speaking=material)
     }
-    already = bool(existing)
-    questions = []
+    parts = []
+    total_questions = 0
+    answered = 0
     for section in sections:
-        for q in section.speaking_answer.all().order_by("question_number"):
-            questions.append({"section": section, "question": q, "answer": existing.get(q.question_number)})
+        questions = list(section.speaking_answer.all().order_by("question_number"))
+        total_questions += len(questions)
+        done = bool(questions) and all(q.question_number in existing for q in questions)
+        if done:
+            answered += len(questions)
+        parts.append({"section": section, "questions": questions, "submitted": done})
+    already = bool(total_questions) and answered >= total_questions
 
     if not already:
         gated = maybe_confirm_details(
@@ -491,10 +501,10 @@ def take_speaking(request, material_id):
             request.session[intro_key] = True
             return redirect("take_speaking", material_id=material.id)
         if not request.session.get(intro_key):
-            total = sum(
-                (item["section"].prep_time or 0) + (item["section"].answer_time or 0)
-                for item in questions
-            )
+            total = 0
+            for section in sections:
+                qcount = max(1, len(section.speaking_answer.all()))
+                total += ((section.prep_time or 0) + (section.answer_time or 0)) * qcount
             minutes = max(1, (total + 59) // 60)
             return render(
                 request,
@@ -506,7 +516,66 @@ def take_speaking(request, material_id):
                 },
             )
 
-    if request.method == "POST" and not already:
+    return render(
+        request,
+        "web/speaking_parts.html",
+        {
+            "material": material,
+            "parts": parts,
+            "already": already,
+            "candidate_name": _candidate_name(request.user),
+        },
+    )
+
+
+@login_required
+def take_speaking_part(request, material_id, speaking_id):
+    material = get_object_or_404(
+        SpeakingMaterial.objects.select_related("test_material__test"),
+        pk=material_id,
+    )
+    if not user_can_access_speaking_material(request.user, material):
+        messages.error(request, "You do not have access to this speaking test.")
+        return redirect("test_list")
+
+    sections = list(
+        Speaking.objects.filter(speaking_material=material)
+        .prefetch_related("speaking_answer")
+        .order_by("speaking_part", "id")
+    )
+    section = next((row for row in sections if row.id == speaking_id), None)
+    if section is None:
+        messages.error(request, "That speaking part was not found.")
+        return redirect("take_speaking", material_id=material.id)
+
+    existing = {
+        row.question_number: row
+        for row in SpeakingUserAnswer.objects.filter(user=request.user, speaking=material)
+    }
+    questions = []
+    for q in section.speaking_answer.all().order_by("question_number"):
+        questions.append(
+            {"section": section, "question": q, "answer": existing.get(q.question_number)}
+        )
+    if not questions:
+        messages.error(request, "This speaking part has no questions yet.")
+        return redirect("take_speaking", material_id=material.id)
+
+    all_qs = [
+        item
+        for sec in sections
+        for item in sec.speaking_answer.all()
+    ]
+    all_submitted = bool(all_qs) and all(q.question_number in existing for q in all_qs)
+    part_submitted = all(item["question"].question_number in existing for item in questions)
+
+    if not all_submitted:
+        if not request.session.get(_details_key("speaking", material.id)) or not request.session.get(
+            f"speaking_intro_{material.id}"
+        ):
+            return redirect("take_speaking", material_id=material.id)
+
+    if request.method == "POST" and not part_submitted:
         uploads = {}
         for item in questions:
             qn = item["question"].question_number
@@ -515,15 +584,30 @@ def take_speaking(request, material_id):
                 uploads[qn] = upload
         if not uploads:
             messages.error(request, "Please record an answer before submitting.")
-            return redirect("take_speaking", material_id=material.id)
+            return redirect(
+                "take_speaking_part",
+                material_id=material.id,
+                speaking_id=section.id,
+            )
         with transaction.atomic():
             for qn, upload in uploads.items():
+                if qn in existing:
+                    continue
                 SpeakingUserAnswer.objects.create(
                     user=request.user,
                     speaking=material,
                     question_number=qn,
                     record=upload,
                 )
+        existing_after = set(existing) | set(uploads)
+        remaining = [
+            q
+            for sec in sections
+            for q in sec.speaking_answer.all()
+            if q.question_number not in existing_after
+        ]
+        if remaining:
+            return redirect("take_speaking", material_id=material.id)
         return submitted_home()
 
     payload = [
@@ -542,10 +626,11 @@ def take_speaking(request, material_id):
         "web/take_speaking.html",
         {
             "material": material,
+            "section": section,
             "questions": questions,
             "questions_json": payload,
-            "already": already,
-            "readonly": already,
+            "already": part_submitted,
+            "readonly": part_submitted,
             "candidate_name": _candidate_name(request.user),
         },
     )

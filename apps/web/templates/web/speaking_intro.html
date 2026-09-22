@@ -9,16 +9,15 @@
       <p><strong>Time:</strong> {{ time_label }}</p>
       <h2>INSTRUCTIONS TO CANDIDATES</h2>
       <ul>
+         <li>After you start, choose a speaking part and answer its questions.</li>
          <li>This test will be recorded through your microphone.</li>
          <li>Speak clearly and answer all the questions.</li>
-         <li>You cannot pause or repeat the questions.</li>
       </ul>
       <h2>INFORMATION FOR CANDIDATES</h2>
       <ul>
-         <li>The Speaking test has three parts.</li>
-         <li>Part 1: Introduction and interview.</li>
-         <li>Part 2: Long turn (1 minute to prepare, 1–2 minutes to speak).</li>
-         <li>Part 3: Two-way discussion.</li>
+         <li>There {{ part_count|pluralize:"is,are" }} {{ part_count }} speaking part{{ part_count|pluralize }} in this test.</li>
+         <li>Each part has its own preparation and answer time.</li>
+         <li>You cannot pause or repeat the questions once answering starts.</li>
       </ul>
       <p class="speak-mic-note"><i class="fa fa-info-circle" aria-hidden="true"></i> Check your microphone before starting.</p>
       <form method="post">

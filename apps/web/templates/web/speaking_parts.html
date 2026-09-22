@@ -1,0 +1,32 @@
+{% extends "web/base.html" %}
+{% load static %}
+{% block title %}{{ material.title }} — Speaking{% endblock %}
+{% block content %}
+<div class="test-page">
+   <div class="container">
+      <div class="test-head">
+         <span>Assigned work</span>
+         <h2>{{ material.title|default:"Speaking tests" }}</h2>
+      </div>
+      <div class="row">
+         {% for item in parts %}
+         <div class="col-md-4">
+            <div class="services_box_main">
+               <div class="services_box text_align_left">
+                  <figure><img src="{% static 'images/speaking.png' %}" alt="Speaking"/></figure>
+                  <div class="veget">
+                     <h3>{{ item.section.get_speaking_part_display }}</h3>
+                     <p>{% if item.submitted %}Submitted{% else %}Not started{% endif %}
+                        · Prep {{ item.section.prep_time }}s · Answer {{ item.section.answer_time }}s
+                     </p>
+                  </div>
+               </div>
+               <a class="read_more" href="{% url 'take_speaking_part' material.id item.section.id %}">{% if item.submitted %}Review{% else %}Start{% endif %}</a>
+            </div>
+         </div>
+         {% endfor %}
+      </div>
+      <p class="app-back"><a href="{% url 'test_list' %}">Back</a></p>
+   </div>
+</div>
+{% endblock %}

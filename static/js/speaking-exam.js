@@ -247,7 +247,5 @@
   stopBtn.addEventListener("click", finishQuestion);
   readBtn.addEventListener("click", speakQuestion);
 
-  ensureMic(function () {
-    startPrep();
-  });
+  startPrep();
 })();
