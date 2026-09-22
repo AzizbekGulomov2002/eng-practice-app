@@ -5,17 +5,17 @@
 <div class="gate-wrap">
    <div class="gate-card gate-card-wide">
       <div class="gate-icon"><i class="fa fa-pencil" aria-hidden="true"></i></div>
-      <h1>{{ material.title|default:"Writing" }}</h1>
+      <h1>Writing</h1>
       <p><strong>Time:</strong> {{ time_label }}</p>
       <h2>INSTRUCTIONS TO CANDIDATES</h2>
       <ul>
-         <li>After you start, choose a writing task and answer it.</li>
-         <li>You can return to the task list and open another writing while time remains.</li>
+         <li>You will go through each writing task in order.</li>
+         <li>You can change your answer until you submit that task.</li>
       </ul>
       <h2>INFORMATION FOR CANDIDATES</h2>
       <ul>
          <li>There {{ part_count|pluralize:"is,are" }} {{ part_count }} writing task{{ part_count|pluralize }} in this test.</li>
-         <li>The clock counts down from the answer time set for this writing material.</li>
+         <li>The clock counts down from the answer time for this writing test.</li>
          <li>The test clock will turn red when 10 minutes remain.</li>
       </ul>
       <form method="post">

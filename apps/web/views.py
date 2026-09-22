@@ -84,6 +84,67 @@ def _writing_timer_context(request, material, already):
     }
 
 
+def _skill_materials(user, skill):
+    items = skill_items_for_user(user, skill)
+    seen = set()
+    materials = []
+    for item in items:
+        pk = item["id"]
+        if pk in seen:
+            continue
+        seen.add(pk)
+        materials.append(item)
+    return materials
+
+
+def _next_writing_target(user, after_writing_id=None):
+    started = after_writing_id is None
+    for item in _skill_materials(user, "writing"):
+        writings = list(
+            Writing.objects.filter(writing_material_id=item["id"]).order_by("writing_task", "id")
+        )
+        submitted = set(
+            WritingUserAnswer.objects.filter(
+                user=user, writing__writing_material_id=item["id"]
+            ).values_list("writing_id", flat=True)
+        )
+        for writing in writings:
+            if not started:
+                if writing.id == after_writing_id:
+                    started = True
+                continue
+            if writing.id not in submitted:
+                return item["id"], writing.id
+    return None, None
+
+
+def _next_speaking_target(user, after_section_id=None):
+    started = after_section_id is None
+    for item in _skill_materials(user, "speaking"):
+        material = SpeakingMaterial.objects.filter(pk=item["id"]).first()
+        if not material:
+            continue
+        sections = list(
+            Speaking.objects.filter(speaking_material=material)
+            .prefetch_related("speaking_answer")
+            .order_by("speaking_part", "id")
+        )
+        existing = set(
+            SpeakingUserAnswer.objects.filter(user=user, speaking=material).values_list(
+                "question_number", flat=True
+            )
+        )
+        for section in sections:
+            questions = list(section.speaking_answer.all())
+            if not started:
+                if section.id == after_section_id:
+                    started = True
+                continue
+            if questions and not all(q.question_number in existing for q in questions):
+                return material.id, section.id
+    return None, None
+
+
 def maybe_confirm_details(request, skill, material_id, resume_url):
     key = _details_key(skill, material_id)
     if request.method == "POST" and request.POST.get("confirm_details"):
@@ -175,6 +236,29 @@ def start_skill(request, skill):
         messages.error(request, "Unknown skill.")
         return redirect("home")
     items = skill_items_for_user(request.user, skill)
+    if skill in {"writing", "speaking"}:
+        if not items:
+            return render(
+                request,
+                "web/skill_list.html",
+                {
+                    "skill": skill,
+                    "skill_title": skill.title(),
+                    "skill_image": f"images/{skill}.png",
+                    "items": [],
+                    "take_url": take_url,
+                    "back_test_id": None,
+                },
+            )
+        if skill == "writing":
+            material_id, writing_id = _next_writing_target(request.user)
+            if material_id is None:
+                material_id = items[0]["id"]
+            return redirect("take_writing", material_id)
+        material_id, section_id = _next_speaking_target(request.user)
+        if material_id is None:
+            material_id = items[0]["id"]
+        return redirect("take_speaking", material_id)
     if len(items) == 1:
         return redirect(take_url, items[0]["id"])
     back_test_id = items[0]["test"].id if items else None
@@ -339,18 +423,25 @@ def take_writing(request, material_id):
                             "answer": "(Time ended. No answer submitted.)",
                         },
                     )
+            nxt_material, nxt_writing = _next_writing_target(request.user, writings[-1].id)
+            if nxt_material:
+                return redirect("take_writing", nxt_material)
             return submitted_home()
 
-    return render(
-        request,
-        "web/writing_parts.html",
-        {
-            "material": material,
-            "parts": _writing_parts(writings, submitted_ids),
-            "already": already,
-            "candidate_name": _candidate_name(request.user),
-            **_writing_timer_context(request, material, already),
-        },
+    for writing in writings:
+        if writing.id not in submitted_ids:
+            return redirect(
+                "take_writing_task",
+                material_id=material.id,
+                writing_id=writing.id,
+            )
+    nxt_material, nxt_writing = _next_writing_target(request.user)
+    if nxt_material and nxt_material != material.id:
+        return redirect("take_writing", nxt_material)
+    return redirect(
+        "take_writing_task",
+        material_id=material.id,
+        writing_id=writings[0].id,
     )
 
 
@@ -430,7 +521,14 @@ def take_writing_task(request, material_id, writing_id):
                 return submitted_home()
         remaining = [row for row in writings if row.id not in submitted_ids and row.id != writing.id]
         if remaining:
-            return redirect("take_writing", material_id=material.id)
+            return redirect(
+                "take_writing_task",
+                material_id=material.id,
+                writing_id=remaining[0].id,
+            )
+        nxt_material, nxt_writing = _next_writing_target(request.user, writing.id)
+        if nxt_material:
+            return redirect("take_writing", nxt_material)
         return submitted_home()
 
     return render(
@@ -516,15 +614,20 @@ def take_speaking(request, material_id):
                 },
             )
 
-    return render(
-        request,
-        "web/speaking_parts.html",
-        {
-            "material": material,
-            "parts": parts,
-            "already": already,
-            "candidate_name": _candidate_name(request.user),
-        },
+    for part in parts:
+        if not part["submitted"]:
+            return redirect(
+                "take_speaking_part",
+                material_id=material.id,
+                speaking_id=part["section"].id,
+            )
+    nxt_material, nxt_section = _next_speaking_target(request.user)
+    if nxt_material and nxt_material != material.id:
+        return redirect("take_speaking", nxt_material)
+    return redirect(
+        "take_speaking_part",
+        material_id=material.id,
+        speaking_id=sections[0].id,
     )
 
 
@@ -600,14 +703,20 @@ def take_speaking_part(request, material_id, speaking_id):
                     record=upload,
                 )
         existing_after = set(existing) | set(uploads)
-        remaining = [
-            q
-            for sec in sections
-            for q in sec.speaking_answer.all()
-            if q.question_number not in existing_after
-        ]
-        if remaining:
-            return redirect("take_speaking", material_id=material.id)
+        remaining_sections = []
+        for sec in sections:
+            qs = list(sec.speaking_answer.all())
+            if qs and not all(q.question_number in existing_after for q in qs):
+                remaining_sections.append(sec)
+        if remaining_sections:
+            return redirect(
+                "take_speaking_part",
+                material_id=material.id,
+                speaking_id=remaining_sections[0].id,
+            )
+        nxt_material, nxt_section = _next_speaking_target(request.user, section.id)
+        if nxt_material:
+            return redirect("take_speaking", nxt_material)
         return submitted_home()
 
     payload = [
