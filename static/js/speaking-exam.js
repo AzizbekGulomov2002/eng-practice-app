@@ -36,9 +36,14 @@
     return (div.textContent || "").replace(/\s+/g, " ").trim();
   }
 
+  function stopSpeak() {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+  }
+
   function speakQuestion() {
+    if (phase === "talk") return;
+    stopSpeak();
     if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
     var text = current().text || plain(current().html);
     if (!text) return;
     var utter = new SpeechSynthesisUtterance(text);
@@ -71,6 +76,7 @@
     wave.hidden = !talking;
     startBtn.hidden = talking;
     stopBtn.hidden = !talking;
+    if (readBtn) readBtn.hidden = talking;
   }
 
   function stopTick() {
@@ -217,7 +223,9 @@
   function startTalk() {
     if (phase === "talk") return;
     stopTick();
+    stopSpeak();
     ensureMic(function (s) {
+      stopSpeak();
       setPhase("talk");
       remaining = current().answer_time || 20;
       renderTimer();
@@ -228,7 +236,7 @@
 
   function finishQuestion() {
     stopTick();
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    stopSpeak();
     stopBtn.disabled = true;
     startBtn.disabled = true;
     stopRecording(function () {
