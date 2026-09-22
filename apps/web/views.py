@@ -5,6 +5,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.html import strip_tags
 from django.views.decorators.http import require_http_methods
 
 from apps.app.models import Test, Users
@@ -48,6 +49,39 @@ def _candidate_name(user):
 
 def submitted_home():
     return redirect(f"{reverse('test_list')}?submitted=1")
+
+
+def _writing_time_label(seconds):
+    seconds = int(seconds or 0)
+    minutes = max(1, seconds // 60) if seconds else 1
+    hours = minutes // 60
+    if hours and minutes % 60 == 0:
+        return "1 hour" if hours == 1 else f"{hours} hours"
+    return "1 minute" if minutes == 1 else f"{minutes} minutes"
+
+
+def _writing_parts(writings, submitted_ids):
+    parts = []
+    for writing in writings:
+        answers = list(writing.writing_answers.all().order_by("question_number"))
+        preview = (writing.description or "").strip()
+        if not preview and answers:
+            preview = strip_tags(answers[0].question or "").strip()
+        parts.append(
+            {
+                "writing": writing,
+                "submitted": writing.id in submitted_ids,
+                "preview": preview,
+            }
+        )
+    return parts
+
+
+def _writing_timer_context(request, material, already):
+    return {
+        "timer_seconds": 0 if already else (material.answer_time or 3600),
+        "timer_key": f"writing-timer-{request.user.id}-{material.id}",
+    }
 
 
 def maybe_confirm_details(request, skill, material_id, resume_url):
@@ -254,7 +288,9 @@ def take_writing(request, material_id):
         messages.error(request, "You do not have access to this writing test.")
         return redirect("test_list")
     writings = list(
-        Writing.objects.filter(writing_material=material).order_by("writing_task", "id")
+        Writing.objects.filter(writing_material=material)
+        .prefetch_related("writing_answers")
+        .order_by("writing_task", "id")
     )
     if not writings:
         messages.error(request, "This writing test has no tasks yet.")
@@ -279,34 +315,47 @@ def take_writing(request, material_id):
             request.session[intro_key] = True
             return redirect("take_writing", material_id=material.id)
         if not request.session.get(intro_key):
-            seconds = material.answer_time or 3600
-            minutes = max(1, seconds // 60)
-            hours = minutes // 60
-            if hours and minutes % 60 == 0:
-                time_label = "1 hour" if hours == 1 else f"{hours} hours"
-            else:
-                time_label = f"{minutes} minutes"
             return render(
                 request,
                 "web/writing_intro.html",
-                {"material": material, "time_label": time_label},
+                {
+                    "material": material,
+                    "time_label": _writing_time_label(material.answer_time or 3600),
+                    "part_count": len(writings),
+                },
             )
-    for writing in writings:
-        if writing.id not in submitted_ids:
-            return redirect(
-                "take_writing_task",
-                material_id=material.id,
-                task_number=writing.writing_task,
-            )
-    return redirect(
-        "take_writing_task",
-        material_id=material.id,
-        task_number=writings[0].writing_task,
+        if request.method == "POST" and (
+            request.POST.get("writing_timeout") or request.POST.get("timed_out")
+        ):
+            with transaction.atomic():
+                for writing in writings:
+                    if writing.id in submitted_ids:
+                        continue
+                    WritingUserAnswer.objects.get_or_create(
+                        user=request.user,
+                        writing=writing,
+                        defaults={
+                            "question_number": 1,
+                            "answer": "(Time ended. No answer submitted.)",
+                        },
+                    )
+            return submitted_home()
+
+    return render(
+        request,
+        "web/writing_parts.html",
+        {
+            "material": material,
+            "parts": _writing_parts(writings, submitted_ids),
+            "already": already,
+            "candidate_name": _candidate_name(request.user),
+            **_writing_timer_context(request, material, already),
+        },
     )
 
 
 @login_required
-def take_writing_task(request, material_id, task_number):
+def take_writing_task(request, material_id, writing_id):
     material = get_object_or_404(
         WritingMaterial.objects.select_related("test_material__test"),
         pk=material_id,
@@ -320,17 +369,22 @@ def take_writing_task(request, material_id, task_number):
         .prefetch_related("writing_answers")
         .order_by("writing_task", "id")
     )
-    writing = next((row for row in writings if row.writing_task == task_number), None)
+    writing = next((row for row in writings if row.id == writing_id), None)
+    if writing is None:
+        writing = next((row for row in writings if row.writing_task == writing_id), None)
     if writing is None:
         messages.error(request, "That writing part was not found.")
-        return redirect("test_list")
+        return redirect("take_writing", material_id=material.id)
 
     existing = WritingUserAnswer.objects.filter(
         user=request.user, writing=writing
     ).first()
-    all_submitted = WritingUserAnswer.objects.filter(
-        user=request.user, writing__writing_material=material
-    ).count() >= len(writings)
+    submitted_ids = set(
+        WritingUserAnswer.objects.filter(
+            user=request.user, writing__writing_material=material
+        ).values_list("writing_id", flat=True)
+    )
+    all_submitted = len(submitted_ids) >= len(writings)
     if not all_submitted:
         if not request.session.get(_details_key("writing", material.id)) or not request.session.get(
             f"writing_intro_{material.id}"
@@ -338,13 +392,9 @@ def take_writing_task(request, material_id, task_number):
             return redirect("take_writing", material_id=material.id)
 
     readonly = bool(existing)
-    prev_writing = next(
-        (row for row in reversed(writings) if row.writing_task < writing.writing_task),
-        None,
-    )
-    next_writing = next(
-        (row for row in writings if row.writing_task > writing.writing_task), None
-    )
+    index = next((i for i, row in enumerate(writings) if row.id == writing.id), 0)
+    prev_writing = writings[index - 1] if index > 0 else None
+    next_writing = writings[index + 1] if index + 1 < len(writings) else None
 
     if request.method == "POST" and not existing:
         text = (request.POST.get(f"writing_{writing.id}") or "").strip()
@@ -356,20 +406,31 @@ def take_writing_task(request, material_id, task_number):
             return redirect(
                 "take_writing_task",
                 material_id=material.id,
-                task_number=writing.writing_task,
+                writing_id=writing.id,
             )
-        WritingUserAnswer.objects.create(
-            user=request.user,
-            writing=writing,
-            question_number=1,
-            answer=text,
-        )
-        if next_writing:
-            return redirect(
-                "take_writing_task",
-                material_id=material.id,
-                task_number=next_writing.writing_task,
+        with transaction.atomic():
+            WritingUserAnswer.objects.create(
+                user=request.user,
+                writing=writing,
+                question_number=1,
+                answer=text,
             )
+            if timed_out:
+                for other in writings:
+                    if other.id == writing.id:
+                        continue
+                    WritingUserAnswer.objects.get_or_create(
+                        user=request.user,
+                        writing=other,
+                        defaults={
+                            "question_number": 1,
+                            "answer": "(Time ended. No answer submitted.)",
+                        },
+                    )
+                return submitted_home()
+        remaining = [row for row in writings if row.id not in submitted_ids and row.id != writing.id]
+        if remaining:
+            return redirect("take_writing", material_id=material.id)
         return submitted_home()
 
     return render(
@@ -382,12 +443,11 @@ def take_writing_task(request, material_id, task_number):
             "answer": existing,
             "already": readonly,
             "readonly": readonly,
-            "timer_seconds": 0 if all_submitted else (material.answer_time or 3600),
-            "timer_key": f"writing-timer-{request.user.id}-{material.id}",
             "prev_writing": prev_writing,
             "next_writing": next_writing,
             "parts": writings,
             "candidate_name": _candidate_name(request.user),
+            **_writing_timer_context(request, material, all_submitted),
         },
     )
 
@@ -412,6 +472,11 @@ def take_speaking(request, material_id):
         for row in SpeakingUserAnswer.objects.filter(user=request.user, speaking=material)
     }
     already = bool(existing)
+    questions = []
+    for section in sections:
+        for q in section.speaking_answer.all().order_by("question_number"):
+            questions.append({"section": section, "question": q, "answer": existing.get(q.question_number)})
+
     if not already:
         gated = maybe_confirm_details(
             request,
@@ -421,23 +486,35 @@ def take_speaking(request, material_id):
         )
         if gated:
             return gated
-    questions = []
-    for section in sections:
-        for q in section.speaking_answer.all().order_by("question_number"):
-            questions.append({"section": section, "question": q, "answer": existing.get(q.question_number)})
+        intro_key = f"speaking_intro_{material.id}"
+        if request.method == "POST" and request.POST.get("start_speaking"):
+            request.session[intro_key] = True
+            return redirect("take_speaking", material_id=material.id)
+        if not request.session.get(intro_key):
+            total = sum(
+                (item["section"].prep_time or 0) + (item["section"].answer_time or 0)
+                for item in questions
+            )
+            minutes = max(1, (total + 59) // 60)
+            return render(
+                request,
+                "web/speaking_intro.html",
+                {
+                    "material": material,
+                    "time_label": f"{minutes} minutes" if minutes != 1 else "1 minute",
+                    "part_count": len(sections),
+                },
+            )
 
     if request.method == "POST" and not already:
         uploads = {}
-        missing = []
         for item in questions:
             qn = item["question"].question_number
             upload = request.FILES.get(f"record_{qn}")
-            if not upload:
-                missing.append(qn)
-            else:
+            if upload:
                 uploads[qn] = upload
-        if missing:
-            messages.error(request, "Please record or upload audio for every speaking question.")
+        if not uploads:
+            messages.error(request, "Please record an answer before submitting.")
             return redirect("take_speaking", material_id=material.id)
         with transaction.atomic():
             for qn, upload in uploads.items():
@@ -449,12 +526,24 @@ def take_speaking(request, material_id):
                 )
         return submitted_home()
 
+    payload = [
+        {
+            "number": item["question"].question_number,
+            "part": item["section"].speaking_part,
+            "text": strip_tags(item["question"].question or "").strip(),
+            "html": item["question"].question or "",
+            "prep_time": item["section"].prep_time or 5,
+            "answer_time": item["section"].answer_time or 20,
+        }
+        for item in questions
+    ]
     return render(
         request,
         "web/take_speaking.html",
         {
             "material": material,
             "questions": questions,
+            "questions_json": payload,
             "already": already,
             "readonly": already,
             "candidate_name": _candidate_name(request.user),

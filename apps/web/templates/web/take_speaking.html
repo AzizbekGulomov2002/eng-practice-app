@@ -3,106 +3,67 @@
 {% block title %}{{ material.title }} — Speaking{% endblock %}
 {% block body_class %}inner_page exam-writing{% endblock %}
 {% block content %}
+{% if readonly %}
 <div class="exam-shell">
    <header class="exam-topbar">
       <div class="exam-top-left">
          <div class="exam-candidate"><i class="fa fa-user-circle-o" aria-hidden="true"></i> Candidate: {{ candidate_name }}</div>
       </div>
-      <div class="exam-top-center">
-         <div class="exam-skill-label">Speaking</div>
-      </div>
+      <div class="exam-top-center"><div class="exam-skill-label">Speaking</div></div>
       <div class="exam-top-right">
          <a class="exam-back" href="{% url 'test_list' %}"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</a>
       </div>
    </header>
-
-   <form method="post" enctype="multipart/form-data" class="exam-form">
-      {% csrf_token %}
-      <div class="exam-speak-scroll">
-         {% for item in questions %}
-         <article class="exam-speak-card">
-            <div class="exam-speak-meta">
-               <span>Part {{ item.section.speaking_part }}</span>
-               <span>Question {{ item.question.question_number }}</span>
-               <span>Prep {{ item.section.prep_time }}s</span>
-               <span>Answer {{ item.section.answer_time }}s</span>
-            </div>
-            <div class="app-rich">{{ item.question.question|safe }}</div>
-            {% if item.answer and item.answer.record %}
-            <audio class="exam-speak-audio" controls src="{{ item.answer.record.url }}"></audio>
-            {% if item.answer.score != None %}<p class="app-meta">Score: {{ item.answer.score }}</p>{% endif %}
-            {% if item.answer.feedback %}<div class="app-feedback">{{ item.answer.feedback }}</div>{% endif %}
-            {% elif not readonly %}
-            <div class="app-recorder" data-question="{{ item.question.question_number }}">
-               <button type="button" class="exam-rec rec-start">Record</button>
-               <button type="button" class="exam-rec exam-rec-stop rec-stop" disabled>Stop</button>
-               <audio class="rec-preview exam-speak-audio" controls></audio>
-               <label class="exam-upload">Upload
-                  <input type="file" name="record_{{ item.question.question_number }}" accept="audio/*">
-               </label>
-            </div>
-            {% endif %}
-         </article>
-         {% endfor %}
-      </div>
-      <div class="exam-bottom">
-         <div class="exam-part-label">{{ material.title }}</div>
-         <div class="exam-nav">
-            {% if not readonly %}
-            <button class="exam-submit" type="submit">Submit</button>
-            {% else %}
-            <span class="exam-submitted-label">Submitted</span>
-            {% endif %}
+   <div class="exam-speak-scroll">
+      {% for item in questions %}
+      <article class="exam-speak-card">
+         <div class="exam-speak-meta">
+            <span>Part {{ item.section.speaking_part }}</span>
+            <span>Question {{ item.question.question_number }}</span>
          </div>
+         <div class="app-rich">{{ item.question.question|safe }}</div>
+         {% if item.answer and item.answer.record %}
+         <audio class="exam-speak-audio" controls src="{{ item.answer.record.url }}"></audio>
+         {% endif %}
+         {% if item.answer and item.answer.score != None %}<p class="app-meta">Score: {{ item.answer.score }}</p>{% endif %}
+         {% if item.answer and item.answer.feedback %}<div class="app-feedback">{{ item.answer.feedback }}</div>{% endif %}
+      </article>
+      {% endfor %}
+   </div>
+</div>
+{% else %}
+<div class="speak-exam">
+   <div class="speak-main">
+      <div class="speak-status" id="speakStatus">
+         <div class="speak-icon speak-icon-prep" id="speakPrepIcon">
+            <i class="fa fa-clock-o" aria-hidden="true"></i>
+         </div>
+         <div class="speak-icon speak-icon-talk" id="speakTalkIcon" hidden>
+            <i class="fa fa-commenting" aria-hidden="true"></i>
+         </div>
+         <p class="speak-timer speak-timer-prep" id="speakTimer">Preparation: 0 s</p>
+         <canvas id="speakWave" class="speak-wave" width="280" height="56" hidden></canvas>
       </div>
+      <p class="speak-num" id="speakNum"></p>
+      <h1 class="speak-question" id="speakQuestion"></h1>
+      <button type="button" class="speak-read" id="speakRead"><i class="fa fa-volume-up" aria-hidden="true"></i> Read Question</button>
+   </div>
+   <div class="speak-bar">
+      <button type="button" class="speak-go" id="speakStart"><i class="fa fa-comment" aria-hidden="true"></i> Start Answering</button>
+      <button type="button" class="speak-stop" id="speakStop" hidden><i class="fa fa-stop-circle" aria-hidden="true"></i> Stop and Continue <i class="fa fa-angle-right" aria-hidden="true"></i></button>
+   </div>
+   <form method="post" enctype="multipart/form-data" id="speak-form" hidden>
+      {% csrf_token %}
+      {% for item in questions %}
+      <input type="file" name="record_{{ item.question.question_number }}" id="record_{{ item.question.question_number }}" accept="audio/*">
+      {% endfor %}
    </form>
 </div>
+{{ questions_json|json_script:"speak-data" }}
+{% endif %}
 {% endblock %}
 {% block extra_js %}
-<script>
-document.querySelectorAll(".app-recorder").forEach(function (box) {
-  var startBtn = box.querySelector(".rec-start");
-  var stopBtn = box.querySelector(".rec-stop");
-  var preview = box.querySelector(".rec-preview");
-  var fileInput = box.querySelector("input[type=file]");
-  var recorder = null;
-  var chunks = [];
-  startBtn.addEventListener("click", function () {
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
-      chunks = [];
-      recorder = new MediaRecorder(stream);
-      recorder.ondataavailable = function (e) { if (e.data.size) chunks.push(e.data); };
-      recorder.onstop = function () {
-        stream.getTracks().forEach(function (t) { t.stop(); });
-        var blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
-        preview.src = URL.createObjectURL(blob);
-        var file = new File([blob], "speaking-q" + box.dataset.question + ".webm", { type: blob.type });
-        var dt = new DataTransfer();
-        dt.items.add(file);
-        fileInput.files = dt.files;
-      };
-      recorder.start();
-      startBtn.disabled = true;
-      stopBtn.disabled = false;
-    }).catch(function () {
-      alert("Microphone permission is required, or upload an audio file instead.");
-    });
-  });
-  stopBtn.addEventListener("click", function () {
-    if (recorder && recorder.state !== "inactive") recorder.stop();
-    startBtn.disabled = false;
-    stopBtn.disabled = true;
-  });
-});
-document.querySelector("form.exam-form") && document.querySelector("form.exam-form").addEventListener("submit", function (e) {
-  var missing = false;
-  document.querySelectorAll(".app-recorder input[type=file]").forEach(function (input) {
-    if (!input.files || !input.files.length) missing = true;
-  });
-  if (missing) {
-    e.preventDefault();
-    alert("Please record or upload audio for every speaking question.");
-  }
-});
-</script>
+{% if not readonly %}
+<script src="{% static 'js/speaking-exam.js' %}"></script>
+{% endif %}
 {% endblock %}

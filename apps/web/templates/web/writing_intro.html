@@ -9,14 +9,14 @@
       <p><strong>Time:</strong> {{ time_label }}</p>
       <h2>INSTRUCTIONS TO CANDIDATES</h2>
       <ul>
-         <li>Answer both parts.</li>
-         <li>You can change your answers at any time during the test.</li>
+         <li>After you start, choose a writing task and answer it.</li>
+         <li>You can return to the task list and open another writing while time remains.</li>
       </ul>
       <h2>INFORMATION FOR CANDIDATES</h2>
       <ul>
-         <li>There are two parts in this test.</li>
-         <li>Part 2 contributes twice as much as Part 1 to the writing score.</li>
-         <li>The test clock will show you when there are 10 minutes and 5 minutes remaining.</li>
+         <li>There {{ part_count|pluralize:"is,are" }} {{ part_count }} writing task{{ part_count|pluralize }} in this test.</li>
+         <li>The clock counts down from the answer time set for this writing material.</li>
+         <li>The test clock will turn red when 10 minutes remain.</li>
       </ul>
       <form method="post">
          {% csrf_token %}

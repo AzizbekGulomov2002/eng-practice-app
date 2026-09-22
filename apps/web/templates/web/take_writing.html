@@ -11,13 +11,14 @@
       <div class="exam-top-center">
          <div class="exam-clock">
             {% if timer_seconds %}
-            <span id="writing-timer" data-seconds="{{ timer_seconds }}" data-key="{{ timer_key }}"><i class="fa fa-clock-o" aria-hidden="true"></i> Time Left: 00:00</span>
+            <span id="writing-timer" class="exam-timer-badge" data-seconds="{{ timer_seconds }}" data-key="{{ timer_key }}"><i class="fa fa-clock-o" aria-hidden="true"></i> Time Left: --:--</span>
             {% else %}
-            <span>Submitted</span>
+            <span class="exam-timer-badge is-done">Submitted</span>
             {% endif %}
          </div>
       </div>
       <div class="exam-top-right">
+         <a class="exam-back" href="{% url 'take_writing' material.id %}"><i class="fa fa-th-large" aria-hidden="true"></i> Tasks</a>
          <a class="exam-back" href="{% url 'test_list' %}"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</a>
       </div>
    </header>
@@ -55,12 +56,12 @@
          <div class="exam-part-label">Part {{ writing.writing_task }}</div>
          <div class="exam-nav">
             {% if prev_writing %}
-            <a class="exam-nav-btn" href="{% url 'take_writing_task' material.id prev_writing.writing_task %}" title="Previous part"><i class="fa fa-angle-left"></i></a>
+            <a class="exam-nav-btn" href="{% url 'take_writing_task' material.id prev_writing.id %}" title="Previous part"><i class="fa fa-angle-left"></i></a>
             {% else %}
             <span class="exam-nav-btn is-disabled"><i class="fa fa-angle-left"></i></span>
             {% endif %}
             {% if next_writing %}
-            <a class="exam-nav-btn" href="{% url 'take_writing_task' material.id next_writing.writing_task %}" title="Next part"><i class="fa fa-angle-right"></i></a>
+            <a class="exam-nav-btn" href="{% url 'take_writing_task' material.id next_writing.id %}" title="Next part"><i class="fa fa-angle-right"></i></a>
             {% else %}
             <span class="exam-nav-btn is-disabled"><i class="fa fa-angle-right"></i></span>
             {% endif %}
@@ -76,6 +77,9 @@
 {% endblock %}
 {% block extra_js %}
 <script src="{% static 'js/exam-tools.js' %}"></script>
+{% if timer_seconds %}
+<script src="{% static 'js/writing-timer.js' %}"></script>
+{% endif %}
 <script>
 (function () {
   if (window.ExamTools) {
@@ -98,46 +102,6 @@
     area.addEventListener("input", words);
     words();
   }
-
-  var form = document.getElementById("writing-form");
-  var el = document.getElementById("writing-timer");
-  if (!form || !el) return;
-  var total = parseInt(el.getAttribute("data-seconds"), 10) || 0;
-  var key = el.getAttribute("data-key");
-  var stored = parseInt(sessionStorage.getItem(key) || "", 10);
-  var remaining = (!isNaN(stored) && stored >= 0 && stored <= total) ? stored : total;
-  function pad(n) { return n < 10 ? "0" + n : String(n); }
-  function render() {
-    var m = Math.floor(remaining / 60);
-    var s = remaining % 60;
-    el.innerHTML = '<i class="fa fa-clock-o" aria-hidden="true"></i> Time Left: ' + pad(m) + ":" + pad(s);
-    if (remaining <= 600) el.classList.add("is-low");
-  }
-  function finish() {
-    sessionStorage.removeItem(key);
-    if (!form.querySelector('input[name="timed_out"]')) {
-      var input = document.createElement("input");
-      input.type = "hidden";
-      input.name = "timed_out";
-      input.value = "1";
-      form.appendChild(input);
-    }
-    form.submit();
-  }
-  function tick() {
-    render();
-    if (remaining <= 0) {
-      finish();
-      return;
-    }
-    remaining -= 1;
-    sessionStorage.setItem(key, String(remaining));
-    setTimeout(tick, 1000);
-  }
-  form.addEventListener("submit", function () {
-    sessionStorage.removeItem(key);
-  });
-  tick();
 })();
 </script>
 {% endblock %}
