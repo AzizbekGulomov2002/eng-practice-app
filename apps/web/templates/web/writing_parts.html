@@ -1,51 +1,45 @@
 {% extends "web/base.html" %}
 {% load static %}
 {% block title %}{{ material.title }} — Writing{% endblock %}
-{% block body_class %}inner_page exam-writing{% endblock %}
 {% block content %}
-<div class="exam-shell">
-   <header class="exam-topbar">
-      <div class="exam-top-left">
-         <div class="exam-candidate"><i class="fa fa-user-circle-o" aria-hidden="true"></i> Candidate: {{ candidate_name }}</div>
-      </div>
-      <div class="exam-top-center">
-         <div class="exam-clock">
-            {% if timer_seconds %}
-            <span id="writing-timer" class="exam-timer-badge" data-seconds="{{ timer_seconds }}" data-key="{{ timer_key }}"><i class="fa fa-clock-o" aria-hidden="true"></i> Time Left: --:--</span>
-            {% else %}
-            <span class="exam-timer-badge is-done">Submitted</span>
-            {% endif %}
+<div class="test-page">
+   <div class="container">
+      <div class="test-head test-head-row">
+         <div>
+            <span>Assigned work</span>
+            <h2>{{ material.title|default:"Writing tests" }}</h2>
          </div>
+         {% if timer_seconds %}
+         <span id="writing-timer" class="exam-timer-badge" data-seconds="{{ timer_seconds }}" data-key="{{ timer_key }}"><i class="fa fa-clock-o" aria-hidden="true"></i> Time Left: --:--</span>
+         {% elif already %}
+         <span class="exam-timer-badge is-done">Submitted</span>
+         {% endif %}
       </div>
-      <div class="exam-top-right">
-         <a class="exam-back" href="{% url 'test_list' %}"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</a>
-      </div>
-   </header>
-
-   <div class="write-pick">
-      <div class="write-pick-inner">
-         <h1>{{ material.title|default:"Writing" }}</h1>
-         <p>Select a writing task. The timer counts down from the answer time for this writing material.</p>
-         <div class="write-pick-grid">
-            {% for item in parts %}
-            <a class="write-pick-card{% if item.submitted %} is-done{% endif %}" href="{% url 'take_writing_task' material.id item.writing.id %}">
-               <span class="write-pick-part">Part {{ item.writing.writing_task }}</span>
-               <h2>{{ item.writing.get_writing_task_display }}</h2>
-               {% if item.preview %}<p>{{ item.preview|truncatewords:28 }}</p>{% endif %}
-               <span class="write-pick-go">{% if item.submitted %}Review{% else %}Start{% endif %}</span>
-            </a>
-            {% endfor %}
+      <div class="row">
+         {% for item in parts %}
+         <div class="col-md-4">
+            <div class="services_box_main">
+               <div class="services_box text_align_left">
+                  <figure><img src="{% static 'images/writing.png' %}" alt="Writing"/></figure>
+                  <div class="veget">
+                     <h3>{{ item.writing.get_writing_task_display }}</h3>
+                     <p>{% if item.submitted %}Submitted{% else %}Not started{% endif %}</p>
+                  </div>
+               </div>
+               <a class="read_more" href="{% url 'take_writing_task' material.id item.writing.id %}">{% if item.submitted %}Review{% else %}Start{% endif %}</a>
+            </div>
          </div>
+         {% endfor %}
       </div>
+      <p class="app-back"><a href="{% url 'test_list' %}">Back</a></p>
    </div>
-
-   {% if timer_seconds %}
-   <form method="post" id="writing-form" class="is-hidden">
-      {% csrf_token %}
-      <input type="hidden" name="writing_timeout" value="1">
-   </form>
-   {% endif %}
 </div>
+{% if timer_seconds %}
+<form method="post" id="writing-form" class="is-hidden">
+   {% csrf_token %}
+   <input type="hidden" name="writing_timeout" value="1">
+</form>
+{% endif %}
 {% endblock %}
 {% block extra_js %}
 {% if timer_seconds %}

@@ -229,6 +229,13 @@
 
 .test-page { padding: 30px 0 50px; position: relative; z-index: 1; }
 .test-head { margin-bottom: 22px; }
+.test-head-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+}
 .test-head span {
     color: #6b7908;
     font-size: 16px;
