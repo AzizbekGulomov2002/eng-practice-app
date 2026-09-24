@@ -358,6 +358,8 @@ def take_reading(request, material_id):
             "correct": correct,
             "readonly": already,
             "candidate_name": _candidate_name(request.user),
+            "timer_seconds": 0 if already else (material.answer_time or 3600),
+            "timer_key": f"reading-timer-{request.user.id}-{material.id}",
         },
     )
 

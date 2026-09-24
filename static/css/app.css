@@ -707,8 +707,8 @@ mark.exam-hl {
     padding: 0 1px;
 }
 .hl-toolbar {
-    position: absolute;
-    z-index: 10000;
+    position: fixed;
+    z-index: 30000;
     display: flex;
     gap: 6px;
     background: #fff;
@@ -776,7 +776,18 @@ mark.exam-hl {
     border-radius: 20px;
     padding: 8px 14px;
 }
-.exam-topbar .exam-font { margin: 0; }
+.exam-prompt,
+.exam-questions,
+.reading-content,
+.app-rich {
+    -webkit-user-select: text;
+    user-select: text;
+}
+.exam-hl-btns {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
 .exam-score {
     font-weight: 800;
     color: #0f766e;

@@ -64,25 +64,49 @@
 
   function place(bar, range) {
     var rect = range.getBoundingClientRect();
-    var top = rect.top + window.scrollY - bar.offsetHeight - 8;
-    var left = rect.left + window.scrollX + rect.width / 2 - bar.offsetWidth / 2;
-    if (top < window.scrollY + 8) top = rect.bottom + window.scrollY + 8;
+    var top = rect.top - bar.offsetHeight - 8;
+    var left = rect.left + rect.width / 2 - bar.offsetWidth / 2;
+    if (top < 8) top = rect.bottom + 8;
     if (left < 8) left = 8;
+    if (left + bar.offsetWidth > window.innerWidth - 8) {
+      left = window.innerWidth - bar.offsetWidth - 8;
+    }
     bar.style.top = top + "px";
     bar.style.left = left + "px";
   }
 
   window.ExamTools = {
-    attachHighlight: function (root) {
-      if (!root) return;
+    attachHighlight: function (roots, extraBtns) {
+      if (!roots) return;
+      if (!Array.isArray(roots)) roots = [roots];
+      roots = roots.filter(Boolean);
+      if (!roots.length) return;
       var bar = toolbar();
       var hideTimer = null;
+      function rootForRange(range) {
+        if (!range) return null;
+        for (var i = 0; i < roots.length; i++) {
+          if (inRoot(range.commonAncestorContainer, roots[i])) return roots[i];
+        }
+        return null;
+      }
       function hide() { bar.hidden = true; }
       function show() {
-        var range = currentRange(root);
-        if (!range) { hide(); return; }
+        var range = window.getSelection() && window.getSelection().rangeCount ? window.getSelection().getRangeAt(0) : null;
+        var root = range && !range.collapsed ? rootForRange(range) : null;
+        if (!root || !currentRange(root)) { hide(); return; }
         bar.hidden = false;
         place(bar, range);
+      }
+      function run(action) {
+        for (var i = 0; i < roots.length; i++) {
+          var range = currentRange(roots[i]);
+          if (!range) continue;
+          if (action === "on") highlight(roots[i]);
+          else clearHighlight(roots[i]);
+          hide();
+          return;
+        }
       }
       document.addEventListener("mouseup", function () {
         clearTimeout(hideTimer);
@@ -94,10 +118,17 @@
       bar.addEventListener("click", function (e) {
         var btn = e.target.closest("[data-hl]");
         if (!btn) return;
-        if (btn.getAttribute("data-hl") === "on") highlight(root);
-        else clearHighlight(root);
-        hide();
+        run(btn.getAttribute("data-hl"));
       });
+      if (extraBtns) {
+        extraBtns.forEach(function (btn) {
+          if (!btn) return;
+          btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            run(btn.getAttribute("data-hl"));
+          });
+        });
+      }
     },
     attachFontSize: function (selectEl, targetEl) {
       if (!selectEl || !targetEl) return;

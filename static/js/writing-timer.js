@@ -1,7 +1,10 @@
 (function () {
-  var el = document.getElementById("writing-timer");
+  var el = document.getElementById("exam-timer") || document.getElementById("writing-timer");
   if (!el) return;
-  var form = document.getElementById("writing-form");
+  var form =
+    document.getElementById("writing-form") ||
+    document.getElementById("examForm") ||
+    document.querySelector("form.exam-form");
   var total = parseInt(el.getAttribute("data-seconds"), 10) || 0;
   var key = el.getAttribute("data-key") || "";
   var stored = parseInt(sessionStorage.getItem(key) || "", 10);

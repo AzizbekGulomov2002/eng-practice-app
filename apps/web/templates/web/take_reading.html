@@ -9,9 +9,21 @@
          <div class="exam-candidate"><i class="fa fa-user-circle-o" aria-hidden="true"></i> Candidate: {{ candidate_name }}</div>
       </div>
       <div class="exam-top-center">
-         {% if already %}<div class="exam-score">Score: {{ correct }} / {{ total }}</div>{% else %}<div class="exam-skill-label">Reading</div>{% endif %}
+         {% if already %}
+         <div class="exam-score">Score: {{ correct }} / {{ total }}</div>
+         {% elif timer_seconds %}
+         <div class="exam-clock">
+            <span id="exam-timer" class="exam-timer-badge" data-seconds="{{ timer_seconds }}" data-key="{{ timer_key }}"><i class="fa fa-clock-o" aria-hidden="true"></i> Time Left: --:--</span>
+         </div>
+         {% else %}
+         <div class="exam-skill-label">Reading</div>
+         {% endif %}
       </div>
       <div class="exam-top-right">
+         <div class="exam-hl-btns">
+            <button type="button" class="hl-btn hl-on" id="hlOn" data-hl="on"><i class="fa fa-pencil" aria-hidden="true"></i> Highlight</button>
+            <button type="button" class="hl-btn hl-off" id="hlOff" data-hl="off"><i class="fa fa-times" aria-hidden="true"></i> Clear</button>
+         </div>
          <label class="exam-font">Font size:
             <select id="examFontSize">
                <option value="12px">12px</option>
@@ -56,10 +68,16 @@
 {% endblock %}
 {% block extra_js %}
 <script src="{% static 'js/exam-tools.js' %}"></script>
+{% if timer_seconds %}
+<script src="{% static 'js/writing-timer.js' %}"></script>
+{% endif %}
 <script>
 (function () {
   if (!window.ExamTools) return;
-  ExamTools.attachHighlight(document.getElementById("examLeft"));
+  ExamTools.attachHighlight(
+    [document.getElementById("examLeft"), document.getElementById("examRight")],
+    [document.getElementById("hlOn"), document.getElementById("hlOff")]
+  );
   ExamTools.attachFontSize(document.getElementById("examFontSize"), document.getElementById("examSplit"));
   ExamTools.attachSplit(
     document.getElementById("examSplit"),

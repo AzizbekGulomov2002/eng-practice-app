@@ -11,13 +11,17 @@
       <div class="exam-top-center">
          <div class="exam-clock">
             {% if timer_seconds %}
-            <span id="writing-timer" class="exam-timer-badge" data-seconds="{{ timer_seconds }}" data-key="{{ timer_key }}"><i class="fa fa-clock-o" aria-hidden="true"></i> Time Left: --:--</span>
+            <span id="exam-timer" class="exam-timer-badge" data-seconds="{{ timer_seconds }}" data-key="{{ timer_key }}"><i class="fa fa-clock-o" aria-hidden="true"></i> Time Left: --:--</span>
             {% else %}
             <span class="exam-timer-badge is-done">Submitted</span>
             {% endif %}
          </div>
       </div>
       <div class="exam-top-right">
+         <div class="exam-hl-btns">
+            <button type="button" class="hl-btn hl-on" id="hlOn" data-hl="on"><i class="fa fa-pencil" aria-hidden="true"></i> Highlight</button>
+            <button type="button" class="hl-btn hl-off" id="hlOff" data-hl="off"><i class="fa fa-times" aria-hidden="true"></i> Clear</button>
+         </div>
          <a class="exam-back" href="{% url 'test_list' %}"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</a>
       </div>
    </header>
@@ -82,7 +86,10 @@
 <script>
 (function () {
   if (window.ExamTools) {
-    ExamTools.attachHighlight(document.getElementById("examLeft"));
+    ExamTools.attachHighlight(
+      document.getElementById("examLeft"),
+      [document.getElementById("hlOn"), document.getElementById("hlOff")]
+    );
     ExamTools.attachFontSize(document.getElementById("writingFontSize"), document.getElementById("writingArea"));
     ExamTools.attachSplit(
       document.getElementById("examSplit"),
